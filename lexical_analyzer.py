@@ -31,7 +31,7 @@ def tokenize(text):
         for i in range(len(line)):
             token += line[i]
             #ignore whitespace
-            if token == " ":
+            if token == " " or token == "\t":
                 token = ""
             #ignore line after comment
             if token == "BTW" or token == "OBTW":
