@@ -1,7 +1,7 @@
 import re
 from tabulate import tabulate
 
-keywords = ["HAI", "KTHXBYE", "WAZZUP", "BUHBYE", "BTW", "OBTW", "TLDR", "I HAS A", "ITZ", "R", "SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF", "BOTH OF", "EITHER", "WON OF", "NOT", "ANY OF", "ALL OF", "BOTH SAEM", "DIFFRINT", "SMOOSH", "MAEK", "A", "IS NOW A", "VISIBLE", "GIMMEH", "O RLY?", "YA RLY", "MEBBE", "NO WAI", "OIC", "WTF?", "OMG", "OMGWTF", "IM IN YR", "UPPIN", "NERFIN", "YR", "TIL", "WILE", "IM OUTTA YR", "HOW IZ I", "GTFO", "IF U SAY SO", "FOUND YR", "I IZ", "MKAY", "AN"]
+keywords = ["HAI", "KTHXBYE", "WAZZUP", "BUHBYE", "BTW", "OBTW", "TLDR", "I HAS A", "ITZ", "R", "SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF", "BOTH OF", "EITHER", "WON OF", "NOT", "ANY OF", "ALL OF", "BOTH SAEM", "DIFFRINT", "SMOOSH", "MAEK", "A", "IS NOW A", "VISIBLE", "GIMMEH", "O RLY?", "YA RLY", "MEBBE", "NO WAI", "OIC", "WTF?", "OMG", "OMGWTF", "IM IN YR", "UPPIN", "NERFIN", "YR", "TIL", "WILE", "IM OUTTA YR", "HOW IZ I", "GTFO", "IF U SAY SO", "FOUND YR", "I IZ", "MKAY", "AN", "+"]
 NUMBR = "^-?\d+$"
 NUMBAR = "^-?\d+\.\d+$"
 YARN = "^\".*\"$"
@@ -33,11 +33,16 @@ def tokenize(text):
             #ignore whitespace
             if token == " ":
                 token = ""
+            #ignore line after comment
+            if token == "BTW" or token == "OBTW":
+                print(token+": KEYWORD")
+                tokens.append((token, "KEYWORD"))
+                break
             #keywords
             elif token in keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     print(token+": KEYWORD")
-                    tokens.append((token, "LINEBREAK"))
+                    tokens.append((token, "KEYWORD"))
                     token = ""
             #NUMBR literal
             elif bool(re.search(NUMBR, token)):
