@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import scrolledtext
 import lexical_analyzer as lexer
+#import syntax_analyzer as parser
 root = Tk()
 
 root.geometry("1400x800")
