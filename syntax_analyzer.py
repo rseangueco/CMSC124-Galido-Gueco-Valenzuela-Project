@@ -54,7 +54,6 @@ class Parser:
             
         while self.current and self.current[0] == 'KTHXBYE':
             self.add_current(node)
-            self.advance()
             
         # <program> <comment>
         return node
