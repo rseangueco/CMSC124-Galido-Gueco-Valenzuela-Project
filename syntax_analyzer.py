@@ -11,7 +11,7 @@ class ParseTreeNode:
         
     def print_tree(self, depth):
         print("type: " + self.type + 
-              ", value: " + (str(self.value) if self.value is not None else "none") + 
+              ", value: " + (str(self.value) if self.value is not None else "none") +
               (", children: " if self.children else ""))
         for child in self.children:
             for i in range(depth): print("\t", end = '')
@@ -23,6 +23,7 @@ class Parser:
         self.current = None
         self.index = -1
         self.symbol_table = {}  # dictionary to store variables and their values
+
         self.advance()
         
     def advance(self):
@@ -74,11 +75,13 @@ class Parser:
     
     def program(self):
         node = ParseTreeNode('PROGRAM', None)
+        
         #<comment> <program>
         while self.current and self.current[0] in ['BTW', 'OBTW']:
             node.add_child(self.comment())
             
         #HAI <var_section> <code_section> KTHXBYE
+
         while self.current and self.current[0] == 'HAI':
             self.add_current(node)
             
@@ -98,7 +101,7 @@ class Parser:
         
         while self.current and self.current[0] in ['BTW', 'OBTW']:
             node.add_child(self.comment())
-            
+
         while self.current and self.current[0] == 'I HAS A':
             node.add_child(self.var_decl())
             
@@ -109,6 +112,7 @@ class Parser:
     
     def var_decl(self):
         node = ParseTreeNode('VAR_DECL', None)
+
         self.add_current(node)  #consume 'I HAS A'
         
         #get variable name
@@ -132,6 +136,7 @@ class Parser:
                 self.symbol_table[var_name] = 'NOOB'
         
         while self.current and self.current[0] in ['BTW', 'OBTW']:
+
             node.add_child(self.comment())
         
         return node
@@ -139,9 +144,10 @@ class Parser:
     def code_section(self):
         node = ParseTreeNode('CODE_SECTION', None)
         
+
         while self.current and self.current[0] in ['BTW', 'OBTW']:
             node.add_child(self.comment())
-            
+
         while self.current and self.current[0] == 'VISIBLE':
             node.add_child(self.statement())
             
@@ -149,6 +155,7 @@ class Parser:
     
     def comment(self):
         node = ParseTreeNode('COMMENT', None)
+
         self.add_current(node)
         
         while self.current and self.current[1] == 'COMMENT':
@@ -159,6 +166,7 @@ class Parser:
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         
+
         if self.current and (
             self.current[1] in ['IDENTIFIER', 'NUMBR', 'NUMBAR', 'YARN', 'TROOF']
         ):
@@ -204,6 +212,7 @@ class Parser:
             node.value = print_node.value
             
         while self.current and self.current[0] in ['BTW', 'OBTW']:
+
             node.add_child(self.comment())
             
         return node

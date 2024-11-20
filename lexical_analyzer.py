@@ -1,5 +1,6 @@
 import re
 from tabulate import tabulate
+import syntax_analyzer as parser
 import lexemes as l
 
 #separates the text by characters
@@ -85,6 +86,7 @@ def tokenize(text):
             elif bool(re.search(l.IDENTIFIER, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     if token not in l.separatedkeywords:
+
                         tokens.append((token, "IDENTIFIER"))
                         token = ""
     
