@@ -34,10 +34,10 @@ def tokenize(text):
             if in_multiline_comment:
                 if token.strip() == "TLDR":
                     in_multiline_comment = False
-                    print(multiline_comment.strip() + ": COMMENT")
+                    #print(multiline_comment.strip() + ": COMMENT")
                     tokens.append((multiline_comment.strip(), "COMMENT"))
                     multiline_comment = ""
-                    print(token.strip() + ": KEYWORD")
+                    #print(token.strip() + ": KEYWORD")
                     tokens.append((token.strip(), "KEYWORD"))
                     break
                 else:
@@ -45,15 +45,15 @@ def tokenize(text):
                     continue
             #single-line comments
             if token.strip() == "BTW":
-                print(token.strip() + ": KEYWORD")
+                #print(token.strip() + ": KEYWORD")
                 tokens.append((token.strip(), "KEYWORD"))
                 comment = "".join(line[i + 1:]).strip()
-                print(comment + ": COMMENT")
+                #print(comment + ": COMMENT")
                 tokens.append((comment, "COMMENT"))
                 break
             #multi-line comments start
             if token.strip() == "OBTW":
-                print(token.strip() + ": KEYWORD")
+                #print(token.strip() + ": KEYWORD")
                 tokens.append((token.strip(), "KEYWORD"))
                 in_multiline_comment = True
                 multiline_comment = ""
@@ -105,7 +105,7 @@ def tokenize(text):
     
     # debug code
     p = parser.Parser(tokens)
-    print(p.parse().print_tree())
+    print(p.parse().print_tree(1))
     
     return tabulate(tokens, headers=head, tablefmt="fancy_grid")
             
