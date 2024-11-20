@@ -41,7 +41,7 @@ def tokenize(text):
             elif token == " " or token == "\t":
                 token = ""
             elif token == "\n":
-                tokens.append((token, "LINEBREAK"))
+                tokens.append(("linebreak", "LINEBREAK"))
             #single-line comments
             elif token.strip() == "BTW":
                 tokens.append((token.strip(), "KEYWORD"))
@@ -93,6 +93,9 @@ def tokenize(text):
     return tokens
 
 def format_tokens(tokens):
+        # debug code
+    p = parser.Parser(tokens)
+    print(p.parse().print_tree(1))
     return tabulate(tokens, headers=["Lexeme", "Type"], tablefmt="fancy_grid")
             
 def lexer(input):

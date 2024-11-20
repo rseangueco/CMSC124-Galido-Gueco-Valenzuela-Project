@@ -72,21 +72,20 @@ class Parser:
     
     def parse(self):
         return self.program()
-    
+
+
     def program(self):
         node = ParseTreeNode('PROGRAM', None)
         
-        #<comment> <program>
-        while self.current and self.current[0] in ['BTW', 'OBTW']:
-            node.add_child(self.comment())
-            
-        #HAI <var_section> <code_section> KTHXBYE
+        while self.current and self.current[0] != 'HAI':
+            self.linebreak(node)
 
-        while self.current and self.current[0] == 'HAI':
-            self.add_current(node)
-            
-        while self.current and self.current[0] == 'WAZZUP':
-            node.add_child(self.var_section())
+        self.add_current(node)
+
+        while self.current and self.current[0] != 'WAZZUP':
+            self.linebreak(node)
+
+        node.add_child(self.var_section())
             
         node.add_child(self.code_section())
             
@@ -102,11 +101,15 @@ class Parser:
         while self.current and self.current[0] in ['BTW', 'OBTW']:
             node.add_child(self.comment())
 
-        while self.current and self.current[0] == 'I HAS A':
-            node.add_child(self.var_decl())
+        # while self.current and self.current[0] == 'linebreak':
+        #     self.add_current(node)
+
+        while self.current and self.current[0] != 'BUHBYE':
+            self.linebreak(node)
+            if self.current and self.current[0] == 'I HAS A':
+                node.add_child(self.var_decl())
             
-        while self.current and self.current[0] == 'BUHBYE':
-            self.add_current(node)
+        self.add_current(node)
         
         return node
     
@@ -134,25 +137,19 @@ class Parser:
             #initialize with NOOB if no value provided
             if var_name is not None:
                 self.symbol_table[var_name] = 'NOOB'
-        
-        while self.current and self.current[0] in ['BTW', 'OBTW']:
-
-            node.add_child(self.comment())
-        
         return node
     
     def code_section(self):
         node = ParseTreeNode('CODE_SECTION', None)
         
-
-        while self.current and self.current[0] in ['BTW', 'OBTW']:
-            node.add_child(self.comment())
-
-        while self.current and self.current[0] == 'VISIBLE':
-            node.add_child(self.statement())
+        while self.current and self.current[0] != 'KTHXBYE':
+            if self.current and self.current[0] == 'VISIBLE':
+                node.add_child(self.statement())
+            self.linebreak(node)
             
+
         return node
-    
+
     def comment(self):
         node = ParseTreeNode('COMMENT', None)
 
@@ -160,9 +157,15 @@ class Parser:
         
         while self.current and self.current[1] == 'COMMENT':
             self.add_current(node)
-            
+        
         return node
     
+    def linebreak(self, node):
+        if self.current and self.current[0] in ['BTW', 'OBTW']:
+            node.add_child(self.comment())
+        elif self.current and self.current[0] == 'linebreak':
+            self.add_current(node)
+
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         
@@ -203,20 +206,15 @@ class Parser:
     
     def statement(self):
         node = ParseTreeNode('STATEMENT', None)
-        
         if self.current and self.current[0] == 'VISIBLE':
             self.add_current(node)
             print_node = self.print_statement()
             node.add_child(print_node)
             #store the evaluated expression value
             node.value = print_node.value
-            
-        while self.current and self.current[0] in ['BTW', 'OBTW']:
-
-            node.add_child(self.comment())
-            
-        return node
         
+        return node
+            
     def print_statement(self):
         node = ParseTreeNode('PRINT_STMT', None)
         
