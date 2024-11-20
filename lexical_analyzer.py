@@ -12,7 +12,7 @@ def extract(input):
         text[i] = list(text[i])
     return text
 
-# Tokenize input
+#tokenize input
 def tokenize(text):
     idx = 1
     tokens = []
@@ -21,7 +21,6 @@ def tokenize(text):
     multiline_comment = ""
 
     for line in text:
-        #print("line "+str(idx))
         idx +=1
         token = ""
         for i in range(len(line)):
@@ -34,10 +33,8 @@ def tokenize(text):
             if in_multiline_comment:
                 if token.strip() == "TLDR":
                     in_multiline_comment = False
-                    #print(multiline_comment.strip() + ": COMMENT")
                     tokens.append((multiline_comment.strip(), "COMMENT"))
                     multiline_comment = ""
-                    #print(token.strip() + ": KEYWORD")
                     tokens.append((token.strip(), "KEYWORD"))
                     break
                 else:
@@ -45,15 +42,12 @@ def tokenize(text):
                     continue
             #single-line comments
             if token.strip() == "BTW":
-                #print(token.strip() + ": KEYWORD")
                 tokens.append((token.strip(), "KEYWORD"))
                 comment = "".join(line[i + 1:]).strip()
-                #print(comment + ": COMMENT")
                 tokens.append((comment, "COMMENT"))
                 break
             #multi-line comments start
             if token.strip() == "OBTW":
-                #print(token.strip() + ": KEYWORD")
                 tokens.append((token.strip(), "KEYWORD"))
                 in_multiline_comment = True
                 multiline_comment = ""
@@ -61,54 +55,48 @@ def tokenize(text):
             #keywords
             elif token in l.keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": KEYWORD")
                     tokens.append((token, "KEYWORD"))
                     token = ""
             #NUMBR literal
             elif bool(re.search(l.NUMBR, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": NUMBR")
                     tokens.append((token, "NUMBR"))
                     token = ""
             #NUMBAR literal
             elif bool(re.search(l.NUMBAR, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": NUMBAR")
                     tokens.append((token, "NUMBAR"))
                     token = ""
             #YARN literal
             elif bool(re.search(l.YARN, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": YARN")
                     tokens.append((token, "YARN"))
                     token = ""
             #TROOF literal
             elif bool(re.search(l.TROOF, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": TROOF")
                     tokens.append((token, "TROOF"))
                     token = ""
             #TYPE literal
             elif bool(re.search(l.TYPE, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    #print(token+": TYPE")
                     tokens.append((token, "TROOF"))
                     token = ""
             #identifiers
             elif bool(re.search(l.IDENTIFIER, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     if token not in l.separatedkeywords:
-                        #print(token+": IDENTIFIER")
+
                         tokens.append((token, "IDENTIFIER"))
                         token = ""
-    head = ["Lexeme", "Type"]
     
-    # debug code
-    p = parser.Parser(tokens)
-    print(p.parse().print_tree(1))
-    
-    return tabulate(tokens, headers=head, tablefmt="fancy_grid")
+    return tokens
+
+def format_tokens(tokens):
+    return tabulate(tokens, headers=["Lexeme", "Type"], tablefmt="fancy_grid")
             
 def lexer(input):
     text = extract(input)
-    return tokenize(text)
+    tokens = tokenize(text)
+    formatted_output = format_tokens(tokens)
+    return tokens, formatted_output
