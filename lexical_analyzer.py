@@ -30,7 +30,6 @@ def tokenize(text):
             #ignore whitespace
             if token == " " or token == "\t":
                 token = ""
-<<<<<<< HEAD
             #handle multi-line comments
             if in_multiline_comment:
                 if token.strip() == "TLDR":
@@ -58,18 +57,12 @@ def tokenize(text):
                 tokens.append((token.strip(), "KEYWORD"))
                 in_multiline_comment = True
                 multiline_comment = ""
-=======
-            #ignore line after comment
-            if token == "BTW" or token == "OBTW":
-                #print(token+": KEYWORD")
-                tokens.append((token, "KEYWORD"))
->>>>>>> 2300d12 (feat: added syntax_analyzer, moved lexemes)
                 break
             #keywords
             elif token in l.keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     #print(token+": KEYWORD")
-                    tokens.append((token, "KEYWORD"))
+                    tokens.append((token, token))
                     token = ""
             #NUMBR literal
             elif bool(re.search(l.NUMBR, token)):
@@ -111,8 +104,9 @@ def tokenize(text):
     head = ["Lexeme", "Type"]
     
     # debug code
+    print(tokens)
     p = parser.Parser(tokens)
-    print(p.parse().print_tree())
+    print(p.parse())
     
     return tabulate(tokens, headers=head, tablefmt="fancy_grid")
             
