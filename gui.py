@@ -25,9 +25,23 @@ dir_textbox = Text(root, font=('Arial'), bg="#A9A9A9", fg="#02066F", borderwidth
 dir_textbox.place(x=10, y=15, height=20, width=530)
 
 #tokens
-lexeme = scrolledtext.ScrolledText(root, font=('Consolas bold', 10))
-lexeme.configure(bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5", state="disabled")
-lexeme.place(x=710, y=80, height=310, width=335)
+# lexeme = scrolledtext.ScrolledText(root, font=('Consolas bold', 10))
+# lexeme.configure(bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5", state="disabled")
+# lexeme.place(x=710, y=80, height=310, width=335)
+
+lexeme_frame = Frame(root, bg="#E5E4E2")
+lexeme_frame.place(x=710, y=80, height=310, width=335)
+
+lexeme_table = ttk.Treeview(lexeme_frame, columns=("Token", "Classification"), show="headings")
+lexeme_table.heading("Token", text="Token")
+lexeme_table.heading("Classification", text="Classification")
+lexeme_table.column("Token", width=165)
+lexeme_table.column("Classification", width=165)
+
+lexeme_scrollbar = ttk.Scrollbar(lexeme_frame, orient=VERTICAL, command=lexeme_table.yview)
+lexeme_table.configure(yscrollcommand=lexeme_scrollbar.set)
+lexeme_scrollbar.pack(side=RIGHT, fill=Y)
+lexeme_table.pack(side=LEFT, fill=BOTH, expand=True)
 
 lexeme_label = Label(root, text="Lexemes", font=('Arial', 15), borderwidth=0, bg="#808080", fg="#36454F")
 lexeme_label.place(x=710, y=40, height=40, width=335)
@@ -96,34 +110,39 @@ def saveAsFile():
     dir_textbox.configure(state="disabled")
 
 def execFile():
+
+    for item in lexeme_table.get_children():
+        lexeme_table.delete(item)
     #clear existing symbol table
     for item in symbol_table.get_children():
         symbol_table.delete(item)
         
     #get tokens and formatted output
-    try:
-        tokens, formatted_output = lexer.lexer(file_path)
-        
-        #update lexeme display
-        lexeme.configure(state="normal")
-        lexeme.delete('1.0', END)
-        lexeme.insert('1.0', formatted_output)
-        lexeme.configure(state="disabled")
-        
-        #parse tokens and get symbol table
-        parser_instance = parser.Parser(tokens)
-        parse_tree = parser_instance.parse()
-        
-        #update symbol table display with variables from parser
-        for var_name, var_value in parser_instance.symbol_table.items():
-            symbol_table.insert('', END, values=(var_name, var_value))
+    # try:
+    tokens, formatted_output = lexer.lexer(file_path)
+    
+    #update lexeme display
+    # lexeme.configure(state="normal")
+    # lexeme.delete('1.0', END)
+    # lexeme.insert('1.0', formatted_output)
+    # lexeme.configure(state="disabled")
+    
+    for token, classification in tokens:
+        lexeme_table.insert('', END, values=(token, classification))
+    #parse tokens and get symbol table
+    parser_instance = parser.Parser(tokens)
+    parse_tree = parser_instance.parse()
+    
+    #update symbol table display with variables from parser
+    for var_name, var_value in parser_instance.symbol_table.items():
+        symbol_table.insert('', END, values=(var_name, var_value))
             
-    except Exception as e:
-        #show error in lexeme display for debugging
-        lexeme.configure(state="normal")
-        lexeme.delete('1.0', END)
-        lexeme.insert('1.0', f"Error: {str(e)}")
-        lexeme.configure(state="disabled")
+    # except Exception as e:
+    #     #show error in lexeme display for debugging
+    #     lexeme.configure(state="normal")
+    #     lexeme.delete('1.0', END)
+    #     lexeme.insert('1.0', f"Error: {str(e)}")
+    #     lexeme.configure(state="disabled")
 
 #BUTTONS
 #save

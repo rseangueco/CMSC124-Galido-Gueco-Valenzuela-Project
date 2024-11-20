@@ -26,32 +26,31 @@ def tokenize(text):
         for i in range(len(line)):
             char = line[i]
             token += char
-            #ignore whitespace
-            if token == " " or token == "\t":
-                token = ""
             #handle multi-line comments
             if in_multiline_comment:
                 if token.strip() == "TLDR":
                     in_multiline_comment = False
-                    tokens.append((multiline_comment.strip(), "COMMENT"))
+                    tokens.append((multiline_comment.strip()[:-3], "COMMENT"))
                     multiline_comment = ""
                     tokens.append((token.strip(), "KEYWORD"))
                     break
                 else:
                     multiline_comment += char
                     continue
+            #ignore whitespace
+            elif token == " " or token == "\t":
+                token = ""
             #single-line comments
-            if token.strip() == "BTW":
+            elif token.strip() == "BTW":
                 tokens.append((token.strip(), "KEYWORD"))
                 comment = "".join(line[i + 1:]).strip()
                 tokens.append((comment, "COMMENT"))
                 break
             #multi-line comments start
-            if token.strip() == "OBTW":
+            elif token.strip() == "OBTW":
                 tokens.append((token.strip(), "KEYWORD"))
                 in_multiline_comment = True
                 multiline_comment = ""
-                break
             #keywords
             elif token in l.keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
@@ -89,7 +88,6 @@ def tokenize(text):
 
                         tokens.append((token, "IDENTIFIER"))
                         token = ""
-    
     return tokens
 
 def format_tokens(tokens):
