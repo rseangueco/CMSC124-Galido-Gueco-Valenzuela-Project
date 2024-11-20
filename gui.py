@@ -28,15 +28,17 @@ dir_textbox.place(x=10, y=15, height=20, width=530)
 # lexeme = scrolledtext.ScrolledText(root, font=('Consolas bold', 10))
 # lexeme.configure(bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5", state="disabled")
 # lexeme.place(x=710, y=80, height=310, width=335)
-
+# style = ttk.Style()
+# style.configure("Treeview",rowheight=40)
 lexeme_frame = Frame(root, bg="#E5E4E2")
 lexeme_frame.place(x=710, y=80, height=310, width=335)
+
 
 lexeme_table = ttk.Treeview(lexeme_frame, columns=("Token", "Classification"), show="headings")
 lexeme_table.heading("Token", text="Token")
 lexeme_table.heading("Classification", text="Classification")
-lexeme_table.column("Token", width=165)
-lexeme_table.column("Classification", width=165)
+lexeme_table.column("Token", width=165, stretch=True)
+lexeme_table.column("Classification", width=165, stretch=True)
 
 lexeme_scrollbar = ttk.Scrollbar(lexeme_frame, orient=VERTICAL, command=lexeme_table.yview)
 lexeme_table.configure(yscrollcommand=lexeme_scrollbar.set)
@@ -128,7 +130,8 @@ def execFile():
     # lexeme.configure(state="disabled")
     
     for token, classification in tokens:
-        lexeme_table.insert('', END, values=(token, classification))
+        if token != "\n":
+            lexeme_table.insert('', END, values=(token, classification))
     #parse tokens and get symbol table
     parser_instance = parser.Parser(tokens)
     parse_tree = parser_instance.parse()

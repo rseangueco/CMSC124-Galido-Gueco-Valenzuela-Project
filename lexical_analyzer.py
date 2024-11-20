@@ -40,6 +40,8 @@ def tokenize(text):
             #ignore whitespace
             elif token == " " or token == "\t":
                 token = ""
+            elif token == "\n":
+                tokens.append((token, "LINEBREAK"))
             #single-line comments
             elif token.strip() == "BTW":
                 tokens.append((token.strip(), "KEYWORD"))
