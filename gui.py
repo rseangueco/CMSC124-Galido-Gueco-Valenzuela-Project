@@ -1,7 +1,10 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import scrolledtext
+from tkinter import ttk
 import lexical_analyzer as lexer
+import syntax_analyzer as parser
+
 root = Tk()
 
 root.geometry("1400x800")
@@ -21,18 +24,40 @@ input_textbox.place(x=10, y=40, height=350, width=690)
 dir_textbox = Text(root, font=('Arial'), bg="#A9A9A9", fg="#02066F", borderwidth=0, state="disabled")
 dir_textbox.place(x=10, y=15, height=20, width=530)
 
-#tokens
-lexeme = scrolledtext.ScrolledText(root, font=('Consolas bold', 10))
-lexeme.configure(bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5", state="disabled")
-lexeme.place(x=710, y=80, height=310, width=335)
+#lexeme table using Treeview
+lexeme_frame = Frame(root, bg="#E5E4E2")
+lexeme_frame.place(x=710, y=80, height=310, width=335)
+
+lexeme_table = ttk.Treeview(lexeme_frame, columns=("Token", "Lexeme"), show="headings")
+lexeme_table.heading("Token", text="Token")
+lexeme_table.heading("Lexeme", text="Lexeme")
+lexeme_table.column("Token", width=165)
+lexeme_table.column("Lexeme", width=165)
+
+# Add scrollbar to lexeme table
+lexeme_scrollbar = ttk.Scrollbar(lexeme_frame, orient=VERTICAL, command=lexeme_table.yview)
+lexeme_table.configure(yscrollcommand=lexeme_scrollbar.set)
+lexeme_scrollbar.pack(side=RIGHT, fill=Y)
+lexeme_table.pack(side=LEFT, fill=BOTH, expand=True)
 
 lexeme_label = Label(root, text="Lexemes", font=('Arial', 15), borderwidth=0, bg="#808080", fg="#36454F")
 lexeme_label.place(x=710, y=40, height=40, width=335)
 
-#symbol table
-symbol_table = Text(root, font=('Arial'))
-symbol_table.configure(bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5", state="disabled")
-symbol_table.place(x=1055, y=80, height=310, width=335)
+#symbol table using Treeview
+symbol_frame = Frame(root, bg="#E5E4E2")
+symbol_frame.place(x=1055, y=80, height=310, width=335)
+
+symbol_table = ttk.Treeview(symbol_frame, columns=("Identifier", "Value"), show="headings")
+symbol_table.heading("Identifier", text="Identifier")
+symbol_table.heading("Value", text="Value")
+symbol_table.column("Identifier", width=165)
+symbol_table.column("Value", width=165)
+
+# Add scrollbar to symbol table
+scrollbar = ttk.Scrollbar(symbol_frame, orient=VERTICAL, command=symbol_table.yview)
+symbol_table.configure(yscrollcommand=scrollbar.set)
+scrollbar.pack(side=RIGHT, fill=Y)
+symbol_table.pack(side=LEFT, fill=BOTH, expand=True)
 
 symbol_label = Label(root, text="Symbol Table", font=('Arial', 15), borderwidth=0, bg="#808080", fg="#36454F")
 symbol_label.place(x=1055, y=40, height=40, width=335)
@@ -82,11 +107,31 @@ def saveAsFile():
     dir_textbox.configure(state="disabled")
 
 def execFile():
-    lexemes = lexer.lexer(file_path)
-    lexeme.configure(state="normal")
-    lexeme.delete('1.0', END)
-    lexeme.insert('1.0', lexemes)
-    lexeme.configure(state="disabled")
+    # Clear existing tables
+    for item in symbol_table.get_children():
+        symbol_table.delete(item)
+    for item in lexeme_table.get_children():
+        lexeme_table.delete(item)
+        
+    try:
+        # Get tokens and formatted output
+        tokens, formatted_output = lexer.lexer(file_path)
+        
+        # Update lexeme table
+        for token in tokens:
+            lexeme_table.insert('', END, values=(token[0], token[1]))
+        
+        # Parse tokens and get symbol table
+        parser_instance = parser.Parser(tokens)
+        parse_tree = parser_instance.parse()
+        
+        # Update symbol table display with variables from parser
+        for var_name, var_value in parser_instance.symbol_table.items():
+            symbol_table.insert('', END, values=(var_name, var_value))
+            
+    except Exception as e:
+        # Show error in lexeme table for debugging
+        lexeme_table.insert('', END, values=("Error", str(e)))
 
 #BUTTONS
 #save
