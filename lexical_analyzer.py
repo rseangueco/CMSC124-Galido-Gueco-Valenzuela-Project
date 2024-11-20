@@ -35,7 +35,7 @@ def tokenize(text):
             elif token in l.keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     #print(token+": KEYWORD")
-                    tokens.append((token, token))
+                    tokens.append((token, "KEYWORD"))
                     token = ""
             #NUMBR literal
             elif bool(re.search(l.NUMBR, token)):
@@ -77,9 +77,8 @@ def tokenize(text):
     head = ["Lexeme", "Type"]
     
     # debug code
-    print(tokens)
     p = parser.Parser(tokens)
-    print(p.parse())
+    print(p.parse().print_tree())
     
     return tabulate(tokens, headers=head, tablefmt="fancy_grid")
             
