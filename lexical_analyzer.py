@@ -11,7 +11,7 @@ def extract(input):
         text[i] = list(text[i])
     return text
 
-# Tokenize input
+#tokenize input
 def tokenize(text):
     idx = 1
     tokens = []
