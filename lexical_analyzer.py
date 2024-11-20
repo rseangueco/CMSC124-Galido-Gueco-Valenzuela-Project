@@ -12,31 +12,58 @@ separatedkeywords = ["I", "HAS", "A", "SUM", "DIFF", "PRODUKT", "QUOSHUNT", "MOD
 
 #separates the text by characters
 def extract(input):
-    input = open(input, 'r')
-    #create array of line string
-    text = input.readlines()
+    with open(input, 'r') as file:
+        text = file.readlines()
 
-    #separate each character per line
     for i in range(len(text)):
         text[i] = list(text[i])
-    return text  
+    return text
 
+# Tokenize input
 def tokenize(text):
     idx = 1
     tokens = []
+    token = ""
+    in_multiline_comment = False
+    multiline_comment = ""
+
     for line in text:
         print("line "+str(idx))
         idx +=1
         token = ""
         for i in range(len(line)):
-            token += line[i]
+            char = line[i]
+            token += char
             #ignore whitespace
             if token == " " or token == "\t":
                 token = ""
-            #ignore line after comment
-            if token == "BTW" or token == "OBTW":
-                print(token+": KEYWORD")
-                tokens.append((token, "KEYWORD"))
+            #handle multi-line comments
+            if in_multiline_comment:
+                if token.strip() == "TLDR":
+                    in_multiline_comment = False
+                    print(multiline_comment.strip() + ": COMMENT")
+                    tokens.append((multiline_comment.strip(), "COMMENT"))
+                    multiline_comment = ""
+                    print(token.strip() + ": KEYWORD")
+                    tokens.append((token.strip(), "KEYWORD"))
+                    break
+                else:
+                    multiline_comment += char
+                    continue
+            #single-line comments
+            if token.strip() == "BTW":
+                print(token.strip() + ": KEYWORD")
+                tokens.append((token.strip(), "KEYWORD"))
+                comment = "".join(line[i + 1:]).strip()
+                print(comment + ": COMMENT")
+                tokens.append((comment, "COMMENT"))
+                break
+            #multi-line comments start
+            if token.strip() == "OBTW":
+                print(token.strip() + ": KEYWORD")
+                tokens.append((token.strip(), "KEYWORD"))
+                in_multiline_comment = True
+                multiline_comment = ""
                 break
             #keywords
             elif token in keywords:
