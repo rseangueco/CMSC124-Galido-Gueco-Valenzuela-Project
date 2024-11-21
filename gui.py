@@ -130,7 +130,7 @@ def execFile():
     # lexeme.configure(state="disabled")
     
     for token, classification in tokens:
-        if token != "\n":
+        if token != "linebreak":
             lexeme_table.insert('', END, values=(token, classification))
     #parse tokens and get symbol table
     parser_instance = parser.Parser(tokens)
