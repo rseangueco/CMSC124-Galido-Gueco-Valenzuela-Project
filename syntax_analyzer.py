@@ -142,12 +142,23 @@ class Parser:
     def code_section(self):
         node = ParseTreeNode('CODE_SECTION', None)
         
+        self.linebreak(node)
+        self.add_current(node)
+        
         while self.current and self.current[0] != 'KTHXBYE':
-            if self.current and self.current[0] == 'VISIBLE':
-                node.add_child(self.statement())
             self.linebreak(node)
             
-
+            # for testing, this can be removed in finished implementations
+            while self.current and self.current[0] in ['linebreak', 'BTW', 'OBTW']:
+                self.linebreak(node)
+                
+            if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or
+                                 self.current[1] == 'IDENTIFIER'):
+                node.add_child(self.statement())
+            else:
+                print("Unexpected token: " + self.current[0] + " at index " + str(self.index))
+                break
+                
         return node
 
     def comment(self):
@@ -202,17 +213,46 @@ class Parser:
                 #perform the operation
                 node.value = self.perform_operation(operator, operand1, operand2)
         
+        if self.current and self.current[0] in ['SMOOSH']:
+            self.add_current(node)
+            node.add_child(self.concat())
+        
+        return node
+    
+    
+    def concat(self):
+        node = ParseTreeNode('CONCAT', None)
+        
+        node.add_child(self.expr())
+        
+        while self.current and self.current[0] == 'AN':
+            self.add_current(node)
+            node.add_child(self.expr())
+        
         return node
     
     def statement(self):
         node = ParseTreeNode('STATEMENT', None)
+        
         if self.current and self.current[0] == 'VISIBLE':
             self.add_current(node)
             print_node = self.print_statement()
             node.add_child(print_node)
             #store the evaluated expression value
             node.value = print_node.value
-        
+            
+        if self.current and self.current[0] == 'GIMMEH':
+            self.add_current(node)
+            input_node = self.input_statement()
+            node.add_child(input_node)
+            #store the evaluated expression value
+            node.value = input_node.value
+            
+        if self.current and self.current[1] == 'IDENTIFIER':
+            self.add_current(node)
+            if self.current and self.current[0] == 'R':
+                node.add_child(self.assignment())
+            
         return node
             
     def print_statement(self):
@@ -222,4 +262,28 @@ class Parser:
         node.add_child(expr_node)
         node.value = expr_node.value
         
+        while self.current and self.current[0] == '+':
+            self.add_current(node)
+            expr_node = self.expr()
+            node.add_child(expr_node)
+            node.value = expr_node.value
+        
         return node
+    
+    def input_statement(self):
+        node = ParseTreeNode('INPUT_STMT', None)
+        
+        expr_node = self.expr()
+        node.add_child(expr_node)
+        node.value = expr_node.value
+        
+        return node
+    
+    def assignment(self):
+        node = ParseTreeNode('ASSIGNMENT', None)
+        
+        self.add_current(node)
+        node.add_child(self.expr())
+        
+        return node
+    
