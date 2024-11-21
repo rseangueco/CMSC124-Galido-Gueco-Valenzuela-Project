@@ -235,31 +235,8 @@ class Parser:
         #comparison
         if self.current and self.current[0] in ['BOTH SAEM', 'DIFFRINT']:
             self.add_current(node)
-            if self.current and self.current[0] not in ['SMALLR OF', 'BIGGR OF']:
-                node.add_child(self.expr())
-                if self.current and self.current[0] in ['AN']:
-                    self.add_current(node)
-                    if self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
-                        self.add_current(node)
-                        node.add_child(self.expr())
-                        if self.current and self.current[0] in ['AN']:
-                            self.add_current(node)
-                            node.add_child(self.expr())
-            elif self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
-                self.add_current(node)
-                node.add_child(self.expr())
-                if self.current and self.current[0] in ['AN']:
-                    self.add_current(node)
-                    node.add_child(self.expr())
-                    if self.current and self.current[0] in ['AN']:
-                        self.add_current(node)
-                        node.add_child(self.expr())
-                        if self.current and self.current[0] in ['AN']:
-                            self.add_current(node)
-                            node.add_child(self.expr())
+            node.add_child(self.comparison_expr())
 
-            
-            
         if self.current and self.current[0] in ['SMOOSH']:
             self.add_current(node)
             node.add_child(self.concat_expr())
@@ -331,6 +308,32 @@ class Parser:
         
         return node
     
+    def comparison_expr(self):
+        node = ParseTreeNode('COMP_EXPR', None)
+        if self.current and self.current[0] not in ['SMALLR OF', 'BIGGR OF']:
+            node.add_child(self.expr())
+            if self.current and self.current[0] in ['AN']:
+                self.add_current(node)
+                if self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
+                    self.add_current(node)
+                    node.add_child(self.expr())
+                    if self.current and self.current[0] in ['AN']:
+                        self.add_current(node)
+                        node.add_child(self.expr())
+        elif self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
+            self.add_current(node)
+            node.add_child(self.expr())
+            if self.current and self.current[0] in ['AN']:
+                self.add_current(node)
+                node.add_child(self.expr())
+                if self.current and self.current[0] in ['AN']:
+                    self.add_current(node)
+                    node.add_child(self.expr())
+                    if self.current and self.current[0] in ['AN']:
+                        self.add_current(node)
+                        node.add_child(self.expr())
+        return node
+
     def type_expr(self):
         node = ParseTreeNode('TYPE_EXPR', None)
         
