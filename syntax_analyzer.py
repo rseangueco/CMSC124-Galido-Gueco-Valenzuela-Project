@@ -180,7 +180,6 @@ class Parser:
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         
-
         if self.current and (
             self.current[1] in ['IDENTIFIER', 'NUMBR', 'NUMBAR', 'YARN', 'TROOF']
         ):
@@ -234,10 +233,15 @@ class Parser:
             
         if self.current and self.current[0] in ['SMOOSH']:
             self.add_current(node)
-            node.add_child(self.concat())
+            node.add_child(self.concat_expr())
+            
+        if self.current and self.current[0] in ['MAEK']:
+            self.add_current(node)
+            node.add_child(self.type_expr())
         
         return node
     
+
     #for all of and any of
     def infexpr(self):
         node = ParseTreeNode('EXPRESSION', None)
@@ -298,6 +302,24 @@ class Parser:
         
         return node
     
+    def type_expr(self):
+        node = ParseTreeNode('TYPE_EXPR', None)
+        
+        if self.current and self.current[1] == 'IDENTIFIER':
+            self.add_current(node)
+            
+        if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
+            self.add_current(node)
+            
+        return node
+    
+    def logic_expr(self):
+        node = ParseTreeNode('LOGIC_EXPR', None)
+        
+        
+        
+        return node
+    
     def statement(self):
         node = ParseTreeNode('STATEMENT', None)
         
@@ -318,7 +340,9 @@ class Parser:
         if self.current and self.current[1] == 'IDENTIFIER':
             self.add_current(node)
             if self.current and self.current[0] == 'R':
-                node.add_child(self.assignment())
+                node.add_child(self.assignment_statement())
+            if self.current and self.current[0] == 'IS NOW A':
+                node.add_child(self.type_statement())
             
         return node
             
@@ -346,11 +370,20 @@ class Parser:
         
         return node
     
-    def assignment(self):
+    def assignment_statement(self):
         node = ParseTreeNode('ASSIGNMENT', None)
         
         self.add_current(node)
         node.add_child(self.expr())
+        
+        return node
+    
+    def type_statement(self):
+        node = ParseTreeNode('TYPE_STMT', None)
+        
+        self.add_current(node)
+        if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
+            self.add_current(node)
         
         return node
     
