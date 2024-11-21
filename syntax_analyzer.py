@@ -216,6 +216,10 @@ class Parser:
         if self.current and self.current[0] in ['SMOOSH']:
             self.add_current(node)
             node.add_child(self.concat())
+            
+        if self.current and self.current[0] in ['MAEK']:
+            self.add_current(node)
+            node.add_child(self.type_expr())
         
         return node
     
@@ -229,6 +233,17 @@ class Parser:
             self.add_current(node)
             node.add_child(self.expr())
         
+        return node
+    
+    def type_expr(self):
+        node = ParseTreeNode('TYPE_EXPR', None)
+        
+        if self.current and self.current[1] == 'IDENTIFIER':
+            self.add_current(node)
+            
+        if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
+            self.add_current(node)
+            
         return node
     
     def statement(self):
@@ -252,6 +267,8 @@ class Parser:
             self.add_current(node)
             if self.current and self.current[0] == 'R':
                 node.add_child(self.assignment())
+            if self.current and self.current[0] == 'IS NOW A':
+                node.add_child(self.type_statement())
             
         return node
             
@@ -284,6 +301,15 @@ class Parser:
         
         self.add_current(node)
         node.add_child(self.expr())
+        
+        return node
+    
+    def type_statement(self):
+        node = ParseTreeNode('TYPE_STMT', None)
+        
+        self.add_current(node)
+        if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
+            self.add_current(node)
         
         return node
     

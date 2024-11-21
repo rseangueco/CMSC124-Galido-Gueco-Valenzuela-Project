@@ -23,7 +23,8 @@ separatedkeywords = ["I", "HAS", "A", "SUM",
                      "OF", "SAEM", "NOW", "O", "RLY", 
                      "YA", "RLY?", "NO", "WAI", "IM", 
                      "IN", "OUTTA", "YR", "HOW", "IF", 
-                     "U", "SAY", "SO", "FOUND", "IZ"]
+                     "U", "SAY", "SO", "FOUND", "IZ",
+                     "IS", "NOW"]
 
 NUMBR = "^-?\d+$"
 NUMBAR = "^-?\d+\.\d+$"
