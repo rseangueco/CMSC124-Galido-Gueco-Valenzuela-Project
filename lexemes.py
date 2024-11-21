@@ -32,3 +32,17 @@ YARN = "^\".*\"$"
 TROOF = "^(WIN|FAIL)$"
 TYPE = "^(NUMBR|NUMBAR|YARN|TROOF|NOOB)$"
 IDENTIFIER = "^[a-zA-Z][_a-zA-Z\d]*$"
+
+DATA_TYPES = ["NUMBR", "NUMBAR", "YARN", "TROOF", "NOOB"]
+
+EXPR_KEYWORDS = []
+
+BIN_EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", 
+                    "MOD OF", "BIGGR OF", "SMALLR OF", 
+                    "BOTH OF", "EITHER OF", "WON OF",
+                    "BOTH SAEM", "DIFFRINT",
+                    ]
+
+INF_EXPR_KEYWORDS = ["ALL OF", "ANY OF"]
+
+STMT_KEYWORDS = ["VISIBLE", "GIMMEH"]
