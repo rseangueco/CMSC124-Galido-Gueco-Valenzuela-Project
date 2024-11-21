@@ -212,13 +212,80 @@ class Parser:
                 
                 #perform the operation
                 node.value = self.perform_operation(operator, operand1, operand2)
+        if self.current and self.current[0] in ['BOTH OF', 'EITHER OF', 'WON OF']:
+            self.add_current(node)
+            node.add_child(self.expr())
+            if self.current and self.current[0] == 'AN':
+                self.add_current(node)
+                node.add_child(self.expr())
         
+        if self.current and self.current[0] in ['NOT']:
+            self.add_current(node)
+            node.add_child(self.expr())
+        
+        if self.current and self.current[0] in ['ALL OF', 'ANY OF']:
+            self.add_current(node)
+            node.add_child(self.infexpr())
+            while self.current and self.current[0] not in ['MKAY']:
+                if self.current and self.current[0] == 'AN':
+                    self.add_current(node)
+                    node.add_child(self.infexpr())
+            self.add_current(node)
+            
         if self.current and self.current[0] in ['SMOOSH']:
             self.add_current(node)
             node.add_child(self.concat())
         
         return node
     
+    #for all of and any of
+    def infexpr(self):
+        node = ParseTreeNode('EXPRESSION', None)
+        
+
+        if self.current and (
+            self.current[1] in ['IDENTIFIER', 'NUMBR', 'NUMBAR', 'YARN', 'TROOF']
+        ):
+            #simple expression (identifier or literal)
+            node.value = self.evaluate_value(self.current)
+            self.add_current(node)
+        
+        elif self.current and self.current[0] in [
+            'SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF',
+            'MOD OF', 'BIGGR OF', 'SMALLR OF'
+        ]:
+            #operation
+            operator = self.current[0]
+            self.add_current(node)
+            
+            #get first operand
+            operand1_node = self.infexpr()
+            operand1 = operand1_node.value
+            node.add_child(operand1_node)
+            
+            #get AN keyword
+            if self.current and self.current[0] == 'AN':
+                self.add_current(node)
+                
+                #get second operand
+                operand2_node = self.infexpr()
+                operand2 = operand2_node.value
+                node.add_child(operand2_node)
+                
+                #perform the operation
+                node.value = self.perform_operation(operator, operand1, operand2)
+        if self.current and self.current[0] in ['BOTH OF', 'EITHER OF', 'WON OF']:
+            self.add_current(node)
+            node.add_child(self.infexpr())
+            if self.current and self.current[0] == 'AN':
+                self.add_current(node)
+                node.add_child(self.infexpr())
+        
+        if self.current and self.current[0] in ['NOT']:
+            self.add_current(node)
+            node.add_child(self.infexpr())
+        
+        return node
     
     def concat(self):
         node = ParseTreeNode('CONCAT', None)
