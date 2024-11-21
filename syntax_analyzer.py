@@ -387,4 +387,3 @@ class Parser:
             self.add_current(node)
         
         return node
-    
