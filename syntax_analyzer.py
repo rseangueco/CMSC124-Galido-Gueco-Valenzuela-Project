@@ -180,6 +180,7 @@ class Parser:
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         
+
         if self.current and (
             self.current[1] in ['IDENTIFIER', 'NUMBR', 'NUMBAR', 'YARN', 'TROOF']
         ):
@@ -291,7 +292,7 @@ class Parser:
         
         return node
     
-    def concat(self):
+    def concat_expr(self):
         node = ParseTreeNode('CONCAT', None)
         
         node.add_child(self.expr())
