@@ -175,12 +175,14 @@ class Parser:
                 self.linebreak(node)
             
             if self.current and self.current[0] in ['BOTH SAEM', 'DIFFRINT']:
+
                 node.add_child(self.if_statement())
             
             #parsing for SWITCH statements
             
             elif self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or
                                     self.current[1] in ['IDENTIFIER']):
+
                 node.add_child(self.statement())
             
             else:
@@ -340,6 +342,7 @@ class Parser:
     
     def comparison_expr(self):
         node = ParseTreeNode('COMP_EXPR', None)
+
         # if self.current and self.current[0] not in ['SMALLR OF', 'BIGGR OF']:
         #     node.add_child(self.expr())
         #     if self.current and self.current[0] in ['AN']:
@@ -388,6 +391,7 @@ class Parser:
         
         return node
     
+
     def if_statement(self):
         node = ParseTreeNode('IF_STATEMENT', None)
         
@@ -437,12 +441,14 @@ class Parser:
         
         # if not self.current or self.current[0] == 'OIC':
         #     self.add_current(node)
+
         
         return node 
     
     def switch_statement(self):
         node = ParseTreeNode('SWITCH_STATEMENT', None)
         
+
         node.add_child(self.expr())
         self.linebreak(node)
         while self.current and self.current[0] == 'OMG':
@@ -504,6 +510,7 @@ class Parser:
         
         # if not self.current or self.current[0] == 'OIC':
         #     self.add_current(node)
+
         
         return node
     
@@ -575,5 +582,5 @@ class Parser:
         self.add_current(node)
         if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
             self.add_current(node)
-        
+
         return node
