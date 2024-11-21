@@ -139,22 +139,50 @@ class Parser:
                 self.symbol_table[var_name] = 'NOOB'
         return node
     
+    # def code_section(self):
+    #     node = ParseTreeNode('CODE_SECTION', None)
+        
+    #     self.linebreak(node)
+    #     self.add_current(node)
+        
+    #     while self.current and self.current[0] != 'KTHXBYE':
+    #         self.linebreak(node)
+            
+    #         # for testing, this can be removed in finished implementations
+    #         while self.current and self.current[0] in ['linebreak', 'BTW', 'OBTW']:
+    #             self.linebreak(node)
+                
+    #         if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or
+    #                              self.current[1] == 'IDENTIFIER'):
+    #             node.add_child(self.statement())
+    #         else:
+    #             print("Unexpected token: " + self.current[0] + " at index " + str(self.index))
+    #             break
+                
+    #     return node
+    
     def code_section(self):
         node = ParseTreeNode('CODE_SECTION', None)
         
         self.linebreak(node)
         self.add_current(node)
         
-        while self.current and self.current[0] != 'KTHXBYE':
+        while self.current and self.current[0] not in ['KTHXBYE', 'NO WAI', 'OIC', 'MEBBE']:
             self.linebreak(node)
             
             # for testing, this can be removed in finished implementations
             while self.current and self.current[0] in ['linebreak', 'BTW', 'OBTW']:
                 self.linebreak(node)
-                
-            if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or
-                                 self.current[1] == 'IDENTIFIER'):
+            
+            if self.current and self.current[0] in ['BOTH SAEM', 'DIFFRINT']:
+                node.add_child(self.if_statement())
+            
+            #parsing for SWITCH statements
+            
+            elif self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or
+                                    self.current[1] in ['IDENTIFIER']):
                 node.add_child(self.statement())
+            
             else:
                 print("Unexpected token: " + self.current[0] + " at index " + str(self.index))
                 break
@@ -168,7 +196,9 @@ class Parser:
         
         while self.current and self.current[1] == 'COMMENT':
             self.add_current(node)
-        
+        while self.current and self.current[0] == 'TLDR':
+            self.add_current(node)
+
         return node
     
     def linebreak(self, node):
@@ -180,6 +210,7 @@ class Parser:
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         
+
         if self.current and (
             self.current[1] in ['IDENTIFIER', 'NUMBR', 'NUMBAR', 'YARN', 'TROOF']
         ):
@@ -228,9 +259,14 @@ class Parser:
             while self.current and self.current[0] not in ['MKAY']:
                 if self.current and self.current[0] == 'AN':
                     self.add_current(node)
-                    node.add_child(self.infexpr())
+                    node.add_child(self.expr())
             self.add_current(node)
-            
+        
+        #comparison
+        if self.current and self.current[0] in ['BOTH SAEM', 'DIFFRINT']:
+            self.add_current(node)
+            node.add_child(self.comparison_expr())
+
         if self.current and self.current[0] in ['SMOOSH']:
             self.add_current(node)
             node.add_child(self.concat_expr())
@@ -291,7 +327,7 @@ class Parser:
         
         return node
     
-    def concat(self):
+    def concat_expr(self):
         node = ParseTreeNode('CONCAT', None)
         
         node.add_child(self.expr())
@@ -302,6 +338,38 @@ class Parser:
         
         return node
     
+    def comparison_expr(self):
+        node = ParseTreeNode('COMP_EXPR', None)
+        # if self.current and self.current[0] not in ['SMALLR OF', 'BIGGR OF']:
+        #     node.add_child(self.expr())
+        #     if self.current and self.current[0] in ['AN']:
+        #         self.add_current(node)
+        #         if self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
+        #             self.add_current(node)
+        #             node.add_child(self.expr())
+        #             if self.current and self.current[0] in ['AN']:
+        #                 self.add_current(node)
+        #                 node.add_child(self.expr())
+        # elif self.current and self.current[0] in ['SMALLR OF', 'BIGGR OF']:
+        #     self.add_current(node)
+        #     node.add_child(self.expr())
+        #     if self.current and self.current[0] in ['AN']:
+        #         self.add_current(node)
+        #         node.add_child(self.expr())
+        #         if self.current and self.current[0] in ['AN']:
+        #             self.add_current(node)
+        #             node.add_child(self.expr())
+        #             if self.current and self.current[0] in ['AN']:
+        #                 self.add_current(node)
+        #                 node.add_child(self.expr())
+        node.add_child(self.expr())
+
+        while self.current and self.current[0] == "AN":
+            self.add_current(node)
+            node.add_child(self.comparison_expr())
+
+        return node
+
     def type_expr(self):
         node = ParseTreeNode('TYPE_EXPR', None)
         
@@ -317,6 +385,125 @@ class Parser:
         node = ParseTreeNode('LOGIC_EXPR', None)
         
         
+        
+        return node
+    
+    def if_statement(self):
+        node = ParseTreeNode('IF_STATEMENT', None)
+        
+        node.add_child(self.comparison_expr())
+        self.linebreak(node)
+        while self.current and self.current[0] == 'O RLY?':
+            self.add_current(node)
+            self.linebreak(node)
+            if self.current and self.current[0] == 'YA RLY':
+                node.add_child(self.code_section())
+            if self.current and self.current[0] == 'NO WAI':
+                node.add_child(self.code_section())
+        
+        if self.current and self.current[0] == 'OIC':
+            self.add_current(node)
+        
+        # if not self.current or self.current[0] == 'O RLY?':
+        #     self.add_current(node)
+        
+        # if not self.current or self.current[0] == 'YA RLY':
+        #     self.add_current(node)
+        
+        # if_block_node = ParseTreeNode('IF_BLOCK', None)
+        # while (self.current and 
+        #        self.current[0] not in ['NO WAI', 'OIC', 'MEBBE']):
+        #     self.linebreak(if_block_node)
+            
+        #     if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or 
+        #                          self.current[1] == 'IDENTIFIER'):
+        #         if_block_node.add_child(self.statement())
+        
+        # node.add_child(if_block_node)
+        
+        # if self.current and self.current[0] == 'NO WAI':
+        #     self.add_current(node)
+            
+        #     else_block_node = ParseTreeNode('ELSE_BLOCK', None)
+        #     while (self.current and 
+        #            self.current[0] not in ['OIC', 'MEBBE']):
+        #         self.linebreak(else_block_node)
+                
+        #         if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or 
+        #                              self.current[1] == 'IDENTIFIER'):
+        #             else_block_node.add_child(self.statement())
+            
+        #     node.add_child(else_block_node)
+        
+        # if not self.current or self.current[0] == 'OIC':
+        #     self.add_current(node)
+        
+        return node 
+    
+    def switch_statement(self):
+        node = ParseTreeNode('SWITCH_STATEMENT', None)
+        
+        node.add_child(self.expr())
+        self.linebreak(node)
+        while self.current and self.current[0] == 'OMG':
+            self.add_current(node)
+            node.add_child(self.code_section())
+        
+        if self.current and self.current[0] == 'OIC':
+            self.add_current(node)
+        # if self.current and self.current[0] == 'WTF?':
+        #     self.add_current(node)
+        
+        # while self.current and self.current[0] != 'OIC':
+        #     if self.current and self.current[0] == 'OMG':
+        #         case_node = ParseTreeNode('CASE', None)
+        #         self.add_current(case_node)
+                
+        #         if self.current and self.current[1] in ['NUMBR', 'NUMBAR', 'YARN', 'TROOF']:
+        #             case_value_node = ParseTreeNode('CASE_VALUE', self.evaluate_value(self.current))
+        #             case_node.add_child(case_value_node)
+        #             self.add_current(case_node)
+        #         else:
+        #             raise SyntaxError(f"Invalid case value: {self.current}")
+                
+        #         case_block_node = ParseTreeNode('CASE_BLOCK', None)
+        #         while (self.current and 
+        #                self.current[0] not in ['OMG', 'OMGWTF', 'OIC', 'GTFO']):
+        #             self.linebreak(case_block_node)
+                    
+        #             if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or 
+        #                                  self.current[1] == 'IDENTIFIER'):
+        #                 case_block_node.add_child(self.statement())
+                    
+        #             if self.current and self.current[0] == 'GTFO':
+        #                 case_block_node.add_child(ParseTreeNode('BREAK', 'GTFO'))
+        #                 self.add_current(case_block_node)
+        #                 break
+                
+        #         case_node.add_child(case_block_node)
+        #         node.add_child(case_node)
+            
+        #     elif self.current and self.current[0] == 'OMGWTF':
+        #         default_node = ParseTreeNode('DEFAULT_CASE', None)
+        #         self.add_current(default_node)
+
+        #         default_block_node = ParseTreeNode('DEFAULT_BLOCK', None)
+        #         while (self.current and 
+        #                self.current[0] not in ['OIC']):
+        #             self.linebreak(default_block_node)
+
+        #             if self.current and (self.current[0] in ['VISIBLE', 'GIMMEH'] or 
+        #                                  self.current[1] == 'IDENTIFIER'):
+        #                 default_block_node.add_child(self.statement())
+                
+        #         default_node.add_child(default_block_node)
+        #         node.add_child(default_node)
+            
+        #     else:
+        #         break
+        
+        # if not self.current or self.current[0] == 'OIC':
+        #     self.add_current(node)
         
         return node
     
@@ -339,10 +526,14 @@ class Parser:
             
         if self.current and self.current[1] == 'IDENTIFIER':
             self.add_current(node)
+            self.linebreak(node)
             if self.current and self.current[0] == 'R':
                 node.add_child(self.assignment_statement())
             if self.current and self.current[0] == 'IS NOW A':
                 node.add_child(self.type_statement())
+            if self.current and self.current[0] == 'WTF?':
+                node.add_child(self.switch_statement())
+            
             
         return node
             
@@ -386,4 +577,3 @@ class Parser:
             self.add_current(node)
         
         return node
-    
