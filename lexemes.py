@@ -35,7 +35,12 @@ IDENTIFIER = "^[a-zA-Z][_a-zA-Z\d]*$"
 
 DATA_TYPES = ["NUMBR", "NUMBAR", "YARN", "TROOF", "NOOB"]
 
-EXPR_KEYWORDS = []
+EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", 
+                    "MOD OF", "BIGGR OF", "SMALLR OF", 
+                    "BOTH OF", "EITHER OF", "WON OF",
+                    "BOTH SAEM", "DIFFRINT",
+                    "ALL OF", "ANY OF"
+                    "NOT"]
 
 BIN_EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", 
                     "MOD OF", "BIGGR OF", "SMALLR OF", 

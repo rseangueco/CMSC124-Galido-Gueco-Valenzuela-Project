@@ -26,6 +26,7 @@ class Parser:
 
         self.advance()
         
+        
     def advance(self):
         self.index += 1
         self.current = self.tokens[self.index] if self.index < len(self.tokens) else None
@@ -36,14 +37,7 @@ class Parser:
         value = self.current[0]
         node.add_child(ParseTreeNode(type, value))
         self.advance()
-    
-    # Parses linebreaks and end-of-line comments
-    def next_line(self, node):
-        if self.current and self.current[0] in ['BTW', 'OBTW']:
-            node.add_child(self.comment())
-        elif self.current and self.current[0] == 'linebreak':
-            #self.add_current(node)
-            self.advance()
+            
             
     def next_token(self, node):
         while self.current and self.current[0] in ['BTW', 'OBTW', 'linebreak']:
@@ -65,6 +59,7 @@ class Parser:
                 #    (" Expected '" + str(name) + "'" if str(name) != None else None) )
             return False
         
+        
     def find_by_type(self, node, type, required):
         self.next_token(node)
         if self.current and self.current[1] in type:
@@ -77,6 +72,7 @@ class Parser:
                 #     (" Expected '" + str(type) + "'" if str(type) != None else None) )
             return False
            
+           
     def comment(self):
         node = ParseTreeNode('COMMENT', None)
         self.add_current(node)
@@ -84,6 +80,7 @@ class Parser:
         while self.current and self.current[0] == 'TLDR': self.add_current(node)
 
         return node
+    
     
     def parse(self):
         return self.program()
@@ -123,7 +120,9 @@ class Parser:
     
     def code_section(self):
         node = ParseTreeNode('CODE_SECTION', None)
-        while (self.find_by_name(node, l.STMT_KEYWORDS, False) or self.find_by_type(node, 'IDENTIFIER', False)): 
+        while (self.find_by_name(node, l.STMT_KEYWORDS, False) or 
+               self.find_by_type(node, 'IDENTIFIER', False) or
+               self.find_by_name(node, l.EXPR_KEYWORDS, False)): 
             node.add_child(self.statement())
         
         return node
@@ -192,7 +191,6 @@ class Parser:
     
     def statement(self):
         node = ParseTreeNode('STATEMENT', None)
-        
         if self.find_by_name(node, 'VISIBLE', False): node.add_child(self.print_statement())
         elif self.find_by_name(node, 'GIMMEH', False): node.add_child(self.input_statement())
         elif self.find_by_type(node, 'IDENTIFIER', False): 
@@ -200,38 +198,45 @@ class Parser:
             if self.find_by_name(node, 'R', False): node.add_child(self.assignment_statement())
             elif self.find_by_name(node, 'IS NOW A', False): node.add_child(self.type_statement())
             elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_statement())
-            
+        elif self.find_by_name(node, l.EXPR_KEYWORDS, False): 
+            node.add_child(self.expr())
+            if self.find_by_name(node, 'O RLY?', False): node.add_child(self.if_statement())
+            elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_statement())
+        
         return node
 
 
     def if_statement(self):
         node = ParseTreeNode('IF_STATEMENT', None)
-        
-        node.add_child(self.comparison_expr())
-        self.next_line(node)
-        while self.current and self.current[0] == 'O RLY?':
+        self.add_current(node)
+        if self.find_by_name(node, 'YA RLY', True): 
             self.add_current(node)
-            self.next_line(node)
-            if self.current and self.current[0] == 'YA RLY':
-                node.add_child(self.code_section())
-            if self.current and self.current[0] == 'NO WAI':
-                node.add_child(self.code_section())
-        
-        if self.current and self.current[0] == 'OIC':
+            node.add_child(self.code_section())
+        while self.find_by_name(node, 'MEBBE', False):
             self.add_current(node)
+            node.add_child(self.expr())
+            node.add_child(self.code_section())
+        if self.find_by_name(node, 'NO WAI', False):
+            self.add_current(node)
+            node.add_child(self.code_section())
+        if self.find_by_name(node, 'OIC', True): self.add_current(node)
+        
         return node 
+    
     
     def switch_statement(self):
         node = ParseTreeNode('SWITCH_STATEMENT', None)
-        
-        node.add_child(self.expr())
-        self.next_line(node)
-        while self.current and self.current[0] == 'OMG':
+        self.add_current(node)
+        while self.find_by_name(node, 'OMG', False):
+            self.add_current(node)
+            node.add_child(self.expr())
+            node.add_child(self.code_section())
+            if self.find_by_name(node, 'GTFO', False): self.add_current(node)
+        if self.find_by_name(node, 'OMGWTF', False): 
             self.add_current(node)
             node.add_child(self.code_section())
+        if self.find_by_name(node, 'OIC', True): self.add_current(node)
         
-        if self.current and self.current[0] == 'OIC':
-            self.add_current(node)
         return node
     
     
@@ -246,6 +251,7 @@ class Parser:
         
         return node
     
+    
     def input_statement(self):
         node = ParseTreeNode('INPUT_STMT', None)
         self.add_current(node)
@@ -254,6 +260,7 @@ class Parser:
         node.value = expr_node.value
         
         return node
+    
     
     def assignment_statement(self):
         node = ParseTreeNode('ASSIGNMENT', None)
