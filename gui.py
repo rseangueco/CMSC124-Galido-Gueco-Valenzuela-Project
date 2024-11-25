@@ -3,7 +3,8 @@ from tkinter import filedialog
 from tkinter import scrolledtext
 from tkinter import ttk
 import lexical_analyzer as lexer
-import syntax_analyzer as parser
+# import syntax_analyzer as parser
+import syntax_analyzer_with_semantics as parser
 
 root = Tk()
 
