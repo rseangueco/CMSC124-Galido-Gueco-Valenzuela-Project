@@ -52,6 +52,36 @@ class Semantics:
             return f"ERROR: {str(e)}"
         
         return None
+    
+    def all_of(self, operands):
+        for operand in operands:
+            if not bool(operand):
+                return False
+        return True
+
+    def any_of(self, operands):
+        for operand in operands:
+            if bool(operand):
+                return True
+        return False
+    
+    # def print_visible(self, expr_nodes):
+    #     output = []
+    #     for node in expr_nodes:
+    #         value = node.value  
+
+    #         if value is None:
+    #             output.append("NOOB")  
+    #         elif isinstance(value, bool):
+    #             output.append("WIN" if value else "FAIL")  
+    #         elif isinstance(value, (int, float)):
+    #             output.append(str(value))
+    #         elif isinstance(value, str):
+    #             output.append(value)
+    #         else:
+    #             output.append(f"UNKNOWN({value})")
+
+    #     return " ".join(output)
 
 class Parser:
     
@@ -182,18 +212,34 @@ class Parser:
     def expr(self):
         node = ParseTreeNode('EXPRESSION', None)
         if self.find_by_type(node, 'IDENTIFIER', False): 
-            node.value = Semantics().evaluate_value(self.current, self.symbol_table)
+            value = Semantics().evaluate_value(self.current, self.symbol_table)
+            node.value = value
             self.add_current(node)
         elif self.find_by_type(node, l.DATA_TYPES, False):
-            node.value = Semantics().evaluate_value(self.current, self.symbol_table)
+            value = Semantics().evaluate_value(self.current, self.symbol_table)
+            node.value = value
             self.add_current(node)
-        elif self.find_by_name(node, l.BIN_EXPR_KEYWORDS, False): node.add_child(self.bin_expr())
-        elif self.find_by_name(node, l.INF_EXPR_KEYWORDS, False): node.add_child(self.inf_expr())
-        elif self.find_by_name(node, "SMOOSH", False): node.add_child(self.concat_expr())
-        elif self.find_by_name(node, "MAEK", False): node.add_child(self.type_expr())
+        elif self.find_by_name(node, l.BIN_EXPR_KEYWORDS, False): 
+            bin_expr_node = self.bin_expr()
+            node.value = bin_expr_node.value
+            node.add_child(bin_expr_node)
+        elif self.find_by_name(node, l.INF_EXPR_KEYWORDS, False): 
+            inf_expr_node = self.inf_expr()
+            node.value = inf_expr_node.value
+            node.add_child(inf_expr_node)
+        elif self.find_by_name(node, "SMOOSH", False): 
+            concat_expr_node = self.concat_expr()
+            node.value = concat_expr_node.value
+            node.add_child(concat_expr_node)
+        elif self.find_by_name(node, "MAEK", False): 
+            type_expr_node = self.type_expr()
+            node.value = type_expr_node.value
+            node.add_child(type_expr_node)
         elif self.find_by_name(node, "NOT", False):
             self.add_current(node)
-            node.add_child(self.expr())
+            not_expr_node = self.expr()
+            node.value = not_expr_node.value
+            node.add_child(not_expr_node)
         else:
             print("Invalid Expression: " + self.current[0])
             return
@@ -225,24 +271,42 @@ class Parser:
             #perform the operation
             node.value = Semantics().perform_operation(operator, operand1, operand2)
         
-        print("Operator:", operator)
-        print("Operand1:", operand1)
-        print("Operand2:", operand2)
-                
         return node
     
 
+    # def inf_expr(self):
+    #     node = ParseTreeNode('INF_EXPR', None)
+    #     self.add_current(node)
+    #     node.add_child(self.expr())
+    #     while self.find_by_name(node, 'AN', False):
+    #         self.add_current(node)
+    #         node.add_child(self.expr())
+    #     if self.find_by_name(node, 'MKAY', True): self.add_current(node)
+        
+    #     return node
+    
     def inf_expr(self):
         node = ParseTreeNode('INF_EXPR', None)
         self.add_current(node)
-        node.add_child(self.expr())
+
+        operands = [self.expr()]
         while self.find_by_name(node, 'AN', False):
             self.add_current(node)
-            node.add_child(self.expr())
-        if self.find_by_name(node, 'MKAY', True): self.add_current(node)
-        
-        return node
-    
+            operands.append(self.expr())
+
+        if self.find_by_name(node, 'ALL OF', False):
+            self.add_current(node)
+            node.value = Semantics().all_of(operands)
+        elif self.find_by_name(node, 'ANY OF', False):
+            self.add_current(node)
+            node.value = Semantics().any_of(operands)
+        else:
+            node.value = operands[-1]  #use last operand as the value
+
+        if self.find_by_name(node, 'MKAY', True):
+            self.add_current(node)
+
+        return node    
     
     def concat_expr(self):
         node = ParseTreeNode('CONCAT_EXPR', None)
@@ -287,15 +351,32 @@ class Parser:
         
         return node
     
+    # def print_stmt(self):
+    #     node = ParseTreeNode('PRINT_STMT', None)
+
+    #     self.add_current(node)
+    #     node.add_child(self.expr())
+    #     while self.find_by_name(node, '+', False):
+    #         self.add_current(node)
+    #         node.add_child(self.expr())
+        
+    #     return node
     
     def print_stmt(self):
         node = ParseTreeNode('PRINT_STMT', None)
 
         self.add_current(node)
-        node.add_child(self.expr())
+        expr_nodes = [self.expr()]
+        node.add_child(expr_nodes[0])
+        
         while self.find_by_name(node, '+', False):
             self.add_current(node)
-            node.add_child(self.expr())
+            next_expr = self.expr()
+            expr_nodes.append(next_expr)
+            node.add_child(next_expr)
+        
+        #add printable output as the node's value
+        node.value = Semantics().print_visible(expr_nodes)
         
         return node
     
