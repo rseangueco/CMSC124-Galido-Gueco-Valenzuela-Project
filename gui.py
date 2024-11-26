@@ -115,104 +115,95 @@ def saveAsFile():
     dir_textbox.insert('1.0', file_path)
     dir_textbox.configure(state="disabled")
     
-def extract_value(expr_node):
-    if expr_node.type == 'NUMBR' or expr_node.type == 'NUMBAR':
-        return str(expr_node.value)
-    elif expr_node.type == 'YARN':
-        return expr_node.value.strip('"')  # Remove quotes
-    elif expr_node.type == 'TROOF':
-        return "WIN" if expr_node.value else "FAIL"
-    elif expr_node.type == 'NOOB' or expr_node.value is None:
-        return "NOOB"
-    elif expr_node.type == 'IDENTIFIER':
-        # Handle variables (look up value in a symbol table, for example)
-        value = symbol_table.get(expr_node.value, "NOOB")
-        return value
-    elif expr_node.type == 'EXPRESSION' and hasattr(expr_node, 'children'):
-        # If it's an expression, recursively evaluate its children
-        results = [extract_value(child) for child in expr_node.children]
-        return " ".join(results)  # Concatenate results for now
-    else:
-        print(f"Unknown node type: {expr_node.type}")
-        return "UNKNOWN"
+# def extract_value(expr_node, symbol_table):
+#     if expr_node.type == 'NUMBR' or expr_node.type == 'NUMBAR':
+#         return str(expr_node.value)
+#     elif expr_node.type == 'YARN':
+#         return expr_node.value.strip('"')  
+#     elif expr_node.type == 'TROOF':
+#         return "WIN" if expr_node.value else "FAIL"
+#     elif expr_node.type == 'NOOB' or expr_node.value is None:
+#         return "NOOB"
+#     elif expr_node.type == 'IDENTIFIER':
+#         return symbol_table.get(expr_node.value, "NOOB")
+#     else:
+#         return "UNKNOWN"
 
+# def execFile():
+
+#     for item in lexeme_table.get_children():
+#         lexeme_table.delete(item)
+#     #clear existing symbol table
+#     for item in symbol_table.get_children():
+#         symbol_table.delete(item)
+        
+#     #get tokens and formatted output
+#     try:
+#         tokens, formatted_output = lexer.lexer(file_path)
+        
+#         #update lexeme display
+#         # lexeme.configure(state="normal")
+#         # lexeme.delete('1.0', END)
+#         # lexeme.insert('1.0', formatted_output)
+#         # lexeme.configure(state="disabled")
+        
+#         for token, classification in tokens:
+#             if token != "linebreak":
+#                 lexeme_table.insert('', END, values=(token, classification))
+#         #parse tokens and get symbol table
+#         parser_instance = parser.Parser(tokens)
+#         parse_tree = parser_instance.parse()
+        
+#         #update symbol table display with variables from parser
+#         for var_name, var_value in parser_instance.symbol_table.items():
+#             symbol_table.insert('', END, values=(var_name, var_value))
+                
+#         # except Exception as e:
+#         #     #show error in lexeme display for debugging
+#         #     lexeme.configure(state="normal")
+#         #     lexeme.delete('1.0', END)
+#         #     lexeme.insert('1.0', f"Error: {str(e)}")
+#         #     lexeme.configure(state="disabled")
+        
 def execFile():
-
+            # Clear previous outputs
     for item in lexeme_table.get_children():
         lexeme_table.delete(item)
-    #clear existing symbol table
     for item in symbol_table.get_children():
         symbol_table.delete(item)
-        
-    #get tokens and formatted output
+        terminal.delete('1.0', END)
+
     try:
+                # Tokenize the input file
         tokens, formatted_output = lexer.lexer(file_path)
-        
-        #update lexeme display
-        # lexeme.configure(state="normal")
-        # lexeme.delete('1.0', END)
-        # lexeme.insert('1.0', formatted_output)
-        # lexeme.configure(state="disabled")
-        
         for token, classification in tokens:
             if token != "linebreak":
                 lexeme_table.insert('', END, values=(token, classification))
-        #parse tokens and get symbol table
-        parser_instance = parser.Parser(tokens)
-        parse_tree = parser_instance.parse()
-        
-        #update symbol table display with variables from parser
-        for var_name, var_value in parser_instance.symbol_table.items():
-            symbol_table.insert('', END, values=(var_name, var_value))
-                
-        # except Exception as e:
-        #     #show error in lexeme display for debugging
-        #     lexeme.configure(state="normal")
-        #     lexeme.delete('1.0', END)
-        #     lexeme.insert('1.0', f"Error: {str(e)}")
-        #     lexeme.configure(state="disabled")
-        
-        def execFile():
-            # Clear previous outputs
-            for item in lexeme_table.get_children():
-                lexeme_table.delete(item)
-            for item in symbol_table.get_children():
-                symbol_table.delete(item)
-            terminal.delete('1.0', END)
-
-            try:
-                # Tokenize the input file
-                tokens, formatted_output = lexer.lexer(file_path)
-                for token, classification in tokens:
-                    if token != "linebreak":
-                        lexeme_table.insert('', END, values=(token, classification))
 
                 # Parse tokens and create parse tree
-                parser_instance = parser.Parser(tokens)
-                parse_tree = parser_instance.parse()
+        parser_instance = parser.Parser(tokens)
+        parse_tree = parser_instance.parse()
 
                 # Populate symbol table
-                for var_name, var_value in parser_instance.symbol_table.items():
-                    symbol_table.insert('', END, values=(var_name, var_value))
+        for var_name, var_value in parser_instance.symbol_table.items():
+            symbol_table.insert('', END, values=(var_name, var_value))
 
                 # Process parse tree for execution
-                for child in parse_tree.children:
-                    if child.type == 'CODE_SECTION':
-                        for stmt in child.children:
-                            if stmt.type == 'STATEMENT':
-                                for inner_child in stmt.children:
-                                    if inner_child.type == 'PRINT_STMT':
-                                        for expr in inner_child.children:
-                                            if expr.type == 'EXPRESSION':
-                                                terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
-                                                terminal.see(END)
-            except Exception as e:
+        for child in parse_tree.children:
+            if child.type == 'CODE_SECTION':
+                for stmt in child.children:
+                    if stmt.type == 'STATEMENT':
+                        for inner_child in stmt.children:
+                            if inner_child.type == 'PRINT_STMT':
+                                for expr in inner_child.children:
+                                    if expr.type == 'EXPRESSION':
+                                        # print(expr.value)
+                                        # terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
+                                        terminal.insert(END, str(expr.value) + "\n")
+                                        terminal.see(END)
+    except Exception as e:
                         terminal.insert(END, f"Error: {str(e)}\n")
                         terminal.see(END)
-    except Exception as e:
-        terminal.insert(END, f"Error: {str(e)}\n")
-        terminal.see(END)
-
 #BUTTONS
 #save
 save_button = Button(root,text='Save', command=saveFile, font=('Arial bold', 10), bg="#6082B6", fg="#36454F", activebackground="#7393B3", activeforeground="#36454F", borderwidth=0)

@@ -65,23 +65,23 @@ class Semantics:
                 return True
         return False
     
-    # def print_visible(self, expr_nodes):
-    #     output = []
-    #     for node in expr_nodes:
-    #         value = node.value  
+    def print_visible(self, expr_nodes):
+        output = []
+        for node in expr_nodes:
+            value = node.value  
 
-    #         if value is None:
-    #             output.append("NOOB")  
-    #         elif isinstance(value, bool):
-    #             output.append("WIN" if value else "FAIL")  
-    #         elif isinstance(value, (int, float)):
-    #             output.append(str(value))
-    #         elif isinstance(value, str):
-    #             output.append(value)
-    #         else:
-    #             output.append(f"UNKNOWN({value})")
+            if value is None:
+                output.append("NOOB")  
+            elif isinstance(value, bool):
+                output.append("WIN" if value else "FAIL")  
+            elif isinstance(value, (int, float)):
+                output.append(str(value))
+            elif isinstance(value, str):
+                output.append(value)
+            else:
+                output.append(f"UNKNOWN({value})")
 
-    #     return " ".join(output)
+        return " ".join(output)
 
 class Parser:
     
