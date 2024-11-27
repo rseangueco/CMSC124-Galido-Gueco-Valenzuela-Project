@@ -1,4 +1,5 @@
 import lexemes as l
+from tkinter import simpledialog
 
 class ParseTreeNode:
     def __init__(self, type, value):
@@ -18,6 +19,7 @@ class ParseTreeNode:
             child.print_tree(depth+1)
             
 class Semantics:       
+        
     def evaluate_value(self, value_token, symbol_table):
         if value_token[1] == 'NUMBR':
             return int(value_token[0])
@@ -82,6 +84,29 @@ class Semantics:
                 output.append(f"UNKNOWN({value})")
 
         return " ".join(output)
+    
+    def gimmeh(self, variable_name, symbol_table, terminal_output):
+        terminal_output += f"Enter value for {variable_name}:\n"
+
+        user_input = input(f"Enter value for {variable_name}: ").strip()
+
+        if variable_name in symbol_table:
+            var_type = type(symbol_table[variable_name])
+            try:
+                if var_type == int:
+                    symbol_table[variable_name] = int(user_input)
+                elif var_type == float:
+                    symbol_table[variable_name] = float(user_input)
+                else: 
+                    symbol_table[variable_name] = user_input
+                terminal_output += f"{variable_name} set to {symbol_table[variable_name]}\n"
+            except ValueError:
+                terminal_output += f"Error: Invalid value for {variable_name}.\n"
+        else:
+            terminal_output += f"Error: {variable_name} not found in symbol table.\n"
+        return terminal_output  
+
+
 
 class Parser:
     
@@ -90,6 +115,7 @@ class Parser:
         self.current = None
         self.index = -1
         self.symbol_table = {}  # dictionary to store variables and their values
+        self.terminal_output = ""
 
         self.advance()
         
@@ -381,12 +407,27 @@ class Parser:
         return node
     
     
+    # def input_stmt(self):
+    #     node = ParseTreeNode('INPUT_STMT', None)
+    #     self.add_current(node)
+    #     expr_node = self.expr()
+    #     node.add_child(expr_node)
+    #     node.value = expr_node.value
+        
+    #     return node
+    
+    
     def input_stmt(self):
-        node = ParseTreeNode('INPUT_STMT', None)
+        node = ParseTreeNode("INPUT_STMT", None)
+
         self.add_current(node)
-        expr_node = self.expr()
-        node.add_child(expr_node)
-        node.value = expr_node.value
+
+        if self.current[1] == "IDENTIFIER":
+            variable_name = self.current[0]
+            self.add_current(node)
+            Semantics().gimmeh(variable_name, self.symbol_table, self.terminal_output)
+        else:
+            raise SyntaxError("Expected an identifier after GIMMEH.")
         
         return node
     

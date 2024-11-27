@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
 import lexical_analyzer as lexer
@@ -166,7 +167,6 @@ def saveAsFile():
 #         #     lexeme.configure(state="disabled")
         
 def execFile():
-            # Clear previous outputs
     for item in lexeme_table.get_children():
         lexeme_table.delete(item)
     for item in symbol_table.get_children():
@@ -174,21 +174,17 @@ def execFile():
         terminal.delete('1.0', END)
 
     try:
-                # Tokenize the input file
         tokens, formatted_output = lexer.lexer(file_path)
         for token, classification in tokens:
             if token != "linebreak":
                 lexeme_table.insert('', END, values=(token, classification))
-
-                # Parse tokens and create parse tree
+                
         parser_instance = parser.Parser(tokens)
         parse_tree = parser_instance.parse()
 
-                # Populate symbol table
         for var_name, var_value in parser_instance.symbol_table.items():
             symbol_table.insert('', END, values=(var_name, var_value))
 
-                # Process parse tree for execution
         for child in parse_tree.children:
             if child.type == 'CODE_SECTION':
                 for stmt in child.children:
@@ -201,6 +197,14 @@ def execFile():
                                         # terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
                                         terminal.insert(END, str(expr.value) + "\n")
                                         terminal.see(END)
+                            elif inner_child.type == 'INPUT_STMT':
+                                #update symbol table after processing GIMMEH
+                                parser_instance.input_stmt()
+                                #refresh symbol table in the GUI
+                                symbol_table.delete(*symbol_table.get_children())
+                                for var_name, var_value in parser_instance.symbol_table.items():
+                                    symbol_table.insert('', END, values=(var_name, var_value))
+
     except Exception as e:
                         terminal.insert(END, f"Error: {str(e)}\n")
                         terminal.see(END)
