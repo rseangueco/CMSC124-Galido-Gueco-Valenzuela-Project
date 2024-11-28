@@ -1,9 +1,11 @@
 from tkinter import *
 from tkinter import filedialog
+from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
 import lexical_analyzer as lexer
-import syntax_analyzer as parser
+# import syntax_analyzer as parser
+import syntax_analyzer_with_semantics as parser
 
 root = Tk()
 
@@ -67,6 +69,9 @@ symbol_table.pack(side=LEFT, fill=BOTH, expand=True)
 symbol_label = Label(root, text="Symbol Table", font=('Arial', 15), borderwidth=0, bg="#808080", fg="#36454F")
 symbol_label.place(x=1055, y=40, height=40, width=335)
 
+terminal = scrolledtext.ScrolledText(root, font=('Consolas', 10), bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5")
+terminal.place(x=10, y=440, height=450, width=1380)
+
 #button actions
 file_path = ''
 def openFile():
@@ -110,43 +115,99 @@ def saveAsFile():
     dir_textbox.delete('1.0', END)
     dir_textbox.insert('1.0', file_path)
     dir_textbox.configure(state="disabled")
+    
+# def extract_value(expr_node, symbol_table):
+#     if expr_node.type == 'NUMBR' or expr_node.type == 'NUMBAR':
+#         return str(expr_node.value)
+#     elif expr_node.type == 'YARN':
+#         return expr_node.value.strip('"')  
+#     elif expr_node.type == 'TROOF':
+#         return "WIN" if expr_node.value else "FAIL"
+#     elif expr_node.type == 'NOOB' or expr_node.value is None:
+#         return "NOOB"
+#     elif expr_node.type == 'IDENTIFIER':
+#         return symbol_table.get(expr_node.value, "NOOB")
+#     else:
+#         return "UNKNOWN"
 
+# def execFile():
+
+#     for item in lexeme_table.get_children():
+#         lexeme_table.delete(item)
+#     #clear existing symbol table
+#     for item in symbol_table.get_children():
+#         symbol_table.delete(item)
+        
+#     #get tokens and formatted output
+#     try:
+#         tokens, formatted_output = lexer.lexer(file_path)
+        
+#         #update lexeme display
+#         # lexeme.configure(state="normal")
+#         # lexeme.delete('1.0', END)
+#         # lexeme.insert('1.0', formatted_output)
+#         # lexeme.configure(state="disabled")
+        
+#         for token, classification in tokens:
+#             if token != "linebreak":
+#                 lexeme_table.insert('', END, values=(token, classification))
+#         #parse tokens and get symbol table
+#         parser_instance = parser.Parser(tokens)
+#         parse_tree = parser_instance.parse()
+        
+#         #update symbol table display with variables from parser
+#         for var_name, var_value in parser_instance.symbol_table.items():
+#             symbol_table.insert('', END, values=(var_name, var_value))
+                
+#         # except Exception as e:
+#         #     #show error in lexeme display for debugging
+#         #     lexeme.configure(state="normal")
+#         #     lexeme.delete('1.0', END)
+#         #     lexeme.insert('1.0', f"Error: {str(e)}")
+#         #     lexeme.configure(state="disabled")
+        
 def execFile():
-
     for item in lexeme_table.get_children():
         lexeme_table.delete(item)
-    #clear existing symbol table
     for item in symbol_table.get_children():
         symbol_table.delete(item)
-        
-    #get tokens and formatted output
-    # try:
-    tokens, formatted_output = lexer.lexer(file_path)
-    
-    #update lexeme display
-    # lexeme.configure(state="normal")
-    # lexeme.delete('1.0', END)
-    # lexeme.insert('1.0', formatted_output)
-    # lexeme.configure(state="disabled")
-    
-    for token, classification in tokens:
-        if token != "linebreak":
-            lexeme_table.insert('', END, values=(token, classification))
-    #parse tokens and get symbol table
-    parser_instance = parser.Parser(tokens)
-    parse_tree = parser_instance.parse()
-    
-    #update symbol table display with variables from parser
-    for var_name, var_value in parser_instance.symbol_table.items():
-        symbol_table.insert('', END, values=(var_name, var_value))
-            
-    # except Exception as e:
-    #     #show error in lexeme display for debugging
-    #     lexeme.configure(state="normal")
-    #     lexeme.delete('1.0', END)
-    #     lexeme.insert('1.0', f"Error: {str(e)}")
-    #     lexeme.configure(state="disabled")
+        terminal.delete('1.0', END)
 
+    try:
+        tokens, formatted_output = lexer.lexer(file_path)
+        for token, classification in tokens:
+            if token != "linebreak":
+                lexeme_table.insert('', END, values=(token, classification))
+                
+        parser_instance = parser.Parser(tokens)
+        parse_tree = parser_instance.parse()
+
+        for var_name, var_value in parser_instance.symbol_table.items():
+            symbol_table.insert('', END, values=(var_name, var_value))
+
+        for child in parse_tree.children:
+            if child.type == 'CODE_SECTION':
+                for stmt in child.children:
+                    if stmt.type == 'STATEMENT':
+                        for inner_child in stmt.children:
+                            if inner_child.type == 'PRINT_STMT':
+                                for expr in inner_child.children:
+                                    if expr.type == 'EXPRESSION':
+                                        # print(expr.value)
+                                        # terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
+                                        terminal.insert(END, str(expr.value) + "\n")
+                                        terminal.see(END)
+                            elif inner_child.type == 'INPUT_STMT':
+                                #update symbol table after processing GIMMEH
+                                parser_instance.input_stmt()
+                                #refresh symbol table in the GUI
+                                symbol_table.delete(*symbol_table.get_children())
+                                for var_name, var_value in parser_instance.symbol_table.items():
+                                    symbol_table.insert('', END, values=(var_name, var_value))
+
+    except Exception as e:
+                        terminal.insert(END, f"Error: {str(e)}\n")
+                        terminal.see(END)
 #BUTTONS
 #save
 save_button = Button(root,text='Save', command=saveFile, font=('Arial bold', 10), bg="#6082B6", fg="#36454F", activebackground="#7393B3", activeforeground="#36454F", borderwidth=0)
