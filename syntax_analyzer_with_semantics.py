@@ -263,9 +263,23 @@ class Parser:
             node.add_child(type_expr_node)
         elif self.find_by_name(node, "NOT", False):
             self.add_current(node)
+            
+            # Evaluate the operand
             not_expr_node = self.expr()
-            node.value = not_expr_node.value
             node.add_child(not_expr_node)
+
+            # Apply semantics for NOT
+            operand_value = not_expr_node.value
+            if isinstance(operand_value, bool):
+                node.value = not operand_value  # Flip boolean
+            elif isinstance(operand_value, (int, float)):
+                node.value = operand_value == 0  # True if operand is zero
+            elif isinstance(operand_value, str):
+                node.value = len(operand_value) == 0  # True if string is empty
+            else:
+                node.value = True  # Treat NOOB as WIN (true when negated)
+            
+            node.type = "TROOF"  # Result of NOT is always TROOF
         else:
             print("Invalid Expression: " + self.current[0])
             return
@@ -334,23 +348,88 @@ class Parser:
 
         return node    
     
+    # def concat_expr(self):
+    #     node = ParseTreeNode('CONCAT_EXPR', None)
+    #     self.add_current(node)
+    #     node.add_child(self.expr())
+    #     while self.find_by_name(node, 'AN', False):
+    #         self.add_current(node)
+    #         node.add_child(self.expr())
+        
+    #     return node
+    
     def concat_expr(self):
         node = ParseTreeNode('CONCAT_EXPR', None)
         self.add_current(node)
-        node.add_child(self.expr())
+
+        # collect all expressions to be concatenated
+        expr_nodes = [self.expr()]
+        node.add_child(expr_nodes[0])
+
         while self.find_by_name(node, 'AN', False):
             self.add_current(node)
-            node.add_child(self.expr())
-        
+            next_expr = self.expr()
+            expr_nodes.append(next_expr)
+            node.add_child(next_expr)
+
+        # perform concatenation
+        concatenated_result = ''.join([str(expr_node.value) for expr_node in expr_nodes])
+        node.value = concatenated_result
+        node.type = "YARN"  # the result of SMOOSH is always YARN (string)
+
         return node
+    
+    
+    # def type_expr(self):
+    #     node = ParseTreeNode('TYPE_EXPR', None)
+    #     self.add_current(node)
+    #     node.add_child(self.expr())
+    #     if self.find_by_type(node, l.DATA_TYPES, True): self.add_current(node)
+        
+    #     return node
     
     
     def type_expr(self):
         node = ParseTreeNode('TYPE_EXPR', None)
         self.add_current(node)
-        node.add_child(self.expr())
-        if self.find_by_type(node, l.DATA_TYPES, True): self.add_current(node)
-        
+
+        # expression to be cast
+        expr_node = self.expr()
+        node.add_child(expr_node)
+
+        # target data type
+        if self.find_by_type(node, l.DATA_TYPES, True):
+            target_type = self.current[0]
+            self.add_current(node)
+
+            # perform type casting
+            original_value = expr_node.value
+            try:
+                if target_type == "NUMBR":
+                    casted_value = int(original_value)
+                elif target_type == "NUMBAR":
+                    casted_value = float(original_value)
+                elif target_type == "YARN":
+                    casted_value = str(original_value)
+                elif target_type == "TROOF":
+                    if isinstance(original_value, bool):
+                        casted_value = original_value
+                    elif isinstance(original_value, (int, float)):
+                        casted_value = original_value != 0
+                    elif isinstance(original_value, str):
+                        casted_value = len(original_value) > 0
+                    else:
+                        casted_value = False
+                else:
+                    casted_value = "NOOB"  # unsupported type results in NOOB
+            except (ValueError, TypeError):
+                casted_value = "NOOB"  # conversion failed
+
+            node.value = casted_value
+            node.type = target_type
+        else:
+            raise SyntaxError("MAEK requires a target data type.")
+
         return node
     
     
