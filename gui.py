@@ -3,9 +3,10 @@ from tkinter import filedialog
 from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
-import lexical_analyzer as lexer
-# import syntax_analyzer as parser
-import syntax_analyzer_with_semantics as parser
+import lexer
+# import syntax_analyzer_with_semnatics as parser
+import syntax_analyzer as parser
+import interpreter
 
 root = Tk()
 
@@ -181,9 +182,12 @@ def execFile():
                 
         parser_instance = parser.Parser(tokens)
         parse_tree = parser_instance.parse()
+        
+        interpreter_instance = interpreter.Interpreter(parse_tree)
+        interpreter_instance.interpret()
 
-        for var_name, var_value in parser_instance.symbol_table.items():
-            symbol_table.insert('', END, values=(var_name, var_value))
+        for var_name, var_value in interpreter_instance.symbol_table.items():
+            symbol_table.insert('', END, values=(var_name, var_value['value']))
 
         for child in parse_tree.children:
             if child.type == 'CODE_SECTION':
