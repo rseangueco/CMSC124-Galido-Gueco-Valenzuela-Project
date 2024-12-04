@@ -8,7 +8,7 @@ class Interpreter:
         self.symbol_table = {}
     
     def interpret(self):
-        return self.interpret_node(self.root)    
+        return self.interpret_node(self.root)
     
     def interpret_node(self, node):
         
@@ -16,17 +16,8 @@ class Interpreter:
             self.interpret_node(child)
             
         if node.type == 'VAR_DECL':
-            var_name = node.children[1].value
-            if len(node.children) >= 3:
-                self.symbol_table[var_name] = {
-                    'value': node.children[3].value,
-                    'type': node.children[3].type
-                }
-            else:
-                self.symbol_table[var_name] = {
-                    'value': 'NOOB',
-                    'type': 'NOOB'
-                }
+            self.declare_variable(node)
+                
         elif node.type == 'EXPRESSION':
             node.value = node.children[0].value
             
@@ -38,7 +29,9 @@ class Interpreter:
                 node.value = self.evaluate_value(node, self.symbol_table)
             
         elif node.type == 'BIN_EXPR':
-            node.value = self.perform_operation(node.children[0].value, node.children[1].value, node.children[3].value)
+            operand1 = self.resolve_var(node.children[1].value)
+            operand2 = self.resolve_var(node.children[3].value)
+            node.value = self.perform_operation(node.children[0].value, operand1, operand2)
         
     def evaluate_value(self, node, symbol_table):
         if node.type == 'NUMBR':
@@ -53,7 +46,32 @@ class Interpreter:
         elif node.type == 'IDENTIFIER':
             return symbol_table.get(node.value, 'NOOB')['value']
         return node.value
+    
+    # takes a value and resolves it if it is a variable, otherwise returns the value
+    # used when an operand may accept the value stored in a variable
+    def resolve_var(self, var_name):
+        if var_name in list(self.symbol_table.keys()):
+            return self.symbol_table.get(var_name, 'NOOB')['value']
+        else:
+            return var_name
 
+    def declare_variable(self, node):
+        var_name = node.children[1].value
+        
+        if var_name in list(self.symbol_table.keys()):
+            print("Variable " + var_name + " has already been declared")
+        
+        if len(node.children) >= 3:
+            self.symbol_table[var_name] = {
+                'value': self.resolve_var(node.children[3].value),
+                'type': node.children[3].type
+            }
+        else:
+            self.symbol_table[var_name] = {
+                'value': 'NOOB',
+                'type': 'NOOB'
+            }
+    
     def perform_operation(self, operator, operand1, operand2):
         try:
             if operator == 'SUM OF':
