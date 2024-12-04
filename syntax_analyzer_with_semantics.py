@@ -31,7 +31,10 @@ class Semantics:
         elif value_token[1] == 'TROOF':
             return value_token[0] == 'WIN'
         elif value_token[1] == 'IDENTIFIER':
-            return symbol_table.get(value_token[0], 'NOOB')
+            if value_token[0] not in symbol_table:
+                raise NameError(f"Undeclared variable: {value_token[0]}.")
+            else:
+                return symbol_table.get(value_token[0], 'NOOB')
         return value_token[0]
 
     def perform_operation(self, operator, operand1, operand2):
@@ -210,6 +213,9 @@ class Parser:
         if self.find_by_type(node, 'IDENTIFIER', True): 
             var_name = self.current[0]
             self.add_current(node)
+        else: 
+            raise SyntaxError("Identifier not foud")
+        
         if self.find_by_name(node, 'ITZ', False): 
             self.add_current(node)
             expr_node = self.expr()
@@ -229,7 +235,8 @@ class Parser:
         node = ParseTreeNode('CODE_SECTION', None)
         while (self.find_by_name(node, l.STMT_KEYWORDS, False) or 
                self.find_by_type(node, 'IDENTIFIER', False) or
-               self.find_by_name(node, l.EXPR_KEYWORDS, False)): 
+               self.find_by_name(node, l.EXPR_KEYWORDS, False)):
+            Semantics().evaluate_value(self.current, self.symbol_table)
             node.add_child(self.stmt())
         
         return node
@@ -281,7 +288,7 @@ class Parser:
             
             node.type = "TROOF"  # Result of NOT is always TROOF
         else:
-            print("Invalid Expression: " + self.current[0])
+            raise SyntaxError("Invalid Expression: " + self.current[0])
             return
         
         return node
