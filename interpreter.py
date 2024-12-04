@@ -27,17 +27,17 @@ class Interpreter:
                     'value': 'NOOB',
                     'type': 'NOOB'
                 }
-        if node.type == 'EXPRESSION':
+        elif node.type == 'EXPRESSION':
             node.value = node.children[0].value
             
-        if node.type in l.DATA_TYPES:
+        elif node.type in l.DATA_TYPES:
             node.value = self.evaluate_value(node, self.symbol_table)
             
-        if node.type == 'IDENTIFIER':
+        elif node.type == 'IDENTIFIER':
             if node.value in self.symbol_table.keys():
                 node.value = self.evaluate_value(node, self.symbol_table)
             
-        if node.type == 'BIN_EXPR':
+        elif node.type == 'BIN_EXPR':
             node.value = self.perform_operation(node.children[0].value, node.children[1].value, node.children[3].value)
         
     def evaluate_value(self, node, symbol_table):
