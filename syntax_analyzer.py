@@ -51,7 +51,7 @@ class Parser:
     # Parses to the next token that is not a comment or line break
     def find_by_name(self, node, name, required):
         self.next_token(node)
-        if self.current and self.current[0] in name:
+        if self.current and (self.current[0] in list(name) or self.current[0] == name):
             return True
         else:
             if required:
@@ -64,7 +64,7 @@ class Parser:
         
     def find_by_type(self, node, type, required):
         self.next_token(node)
-        if self.current and self.current[1] in type:
+        if self.current and (self.current[1] in list(type) or self.current[1] == type):
             return True
         else:
             if required:
