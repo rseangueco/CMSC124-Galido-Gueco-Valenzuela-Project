@@ -44,15 +44,17 @@ def tokenize(text):
                 tokens.append(("linebreak", "LINEBREAK"))
             #single-line comments
             elif token.strip() == "BTW":
-                tokens.append((token.strip(), "KEYWORD"))
-                comment = "".join(line[i + 1:]).strip()
-                tokens.append((comment, "COMMENT"))
-                break
+                if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
+                    tokens.append((token.strip(), "KEYWORD"))
+                    comment = "".join(line[i + 1:]).strip()
+                    tokens.append((comment, "COMMENT"))
+                    break
             #multi-line comments start
             elif token.strip() == "OBTW":
-                tokens.append((token.strip(), "KEYWORD"))
-                in_multiline_comment = True
-                multiline_comment = ""
+                if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
+                    tokens.append((token.strip(), "KEYWORD"))
+                    in_multiline_comment = True
+                    multiline_comment = ""
             #keywords
             elif token in l.keywords:
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
