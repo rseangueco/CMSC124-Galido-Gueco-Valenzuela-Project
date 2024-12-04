@@ -31,7 +31,10 @@ class Semantics:
         elif value_token[1] == 'TROOF':
             return value_token[0] == 'WIN'
         elif value_token[1] == 'IDENTIFIER':
-            return symbol_table.get(value_token[0], 'NOOB')
+            if value_token[0] not in symbol_table:
+                raise NameError(f"Undeclared variable: {value_token[0]}.")
+            else:
+                return symbol_table.get(value_token[0], 'NOOB')
         return value_token[0]
 
     def perform_operation(self, operator, operand1, operand2):
