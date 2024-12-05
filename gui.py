@@ -185,7 +185,6 @@ def execFile():
         
         interpreter_instance = interpreter.Interpreter(parse_tree)
         output = interpreter_instance.interpret()
-        print(output)
         
         for var_name, var_value in interpreter_instance.symbol_table.items():
             symbol_table.insert('', END, values=(var_name, var_value['value']))
