@@ -20,10 +20,9 @@ class Interpreter:
             self.declare_variable(node)
                 
         elif node.type == 'EXPRESSION':
-            node.value = self.resolve_var(node.children[0].value)
+            node.value = node.children[0].value
             if node.children[0].value == 'NOT':
                 node.value = 'FAIL' if self.resolve_var(node.children[1].value) and  self.resolve_var(node.children[1].value) != 'FAIL'  else 'WIN'
-                print(self.resolve_var(node.children[1].value))
             
         elif node.type in l.DATA_TYPES:
             node.value = self.evaluate_value(node, self.symbol_table)
@@ -32,6 +31,14 @@ class Interpreter:
             operand1 = self.resolve_var(node.children[1].value)
             operand2 = self.resolve_var(node.children[3].value)
             node.value = self.perform_bin_op(node.children[0].value, operand1, operand2)
+
+        elif node.type == 'INF_EXPR':
+            operands = []
+            i = 1
+            while i < len(node.children):
+                operands.append(self.resolve_var(node.children[i].value))
+                i += 2
+            node.value = self.perform_inf_op(node.children[0].value, operands)
         
         elif node.type == 'ASSIGN_STMT':
             var_name = node.children[0].value
@@ -62,7 +69,6 @@ class Interpreter:
         elif node.type == 'TYPE_EXPR':
             original_value = self.resolve_var(node.children[1].value)
             target_type = node.children[2].type
-            print(target_type)
             node.value = self.type_cast(original_value, target_type)
             
         
@@ -128,12 +134,31 @@ class Interpreter:
                 return 'WIN' if (operand1 or operand2) else 'FAIL'
             elif operator == 'WON OF':
                 return 'WIN' if (operand1 or operand2) and not (operand1 and operand2) else 'FAIL'
+            elif operator == 'BOTH SAEM':
+                return 'WIN' if (operand1 == operand2) else 'FAIL'
+            elif operator == 'DIFFRINT':
+                return 'WIN' if (operand1 != operand2) else 'FAIL'
         except Exception as e:
             print(str(e))
             raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
         
         return None
     
+    def perform_inf_op(self, operator, operands):
+        if operator == 'ALL OF':
+            for operand in operands:
+                if bool(operand) and operand != 'WIN':
+                    return 'FAIL'
+            return 'WIN'
+        
+        elif operator == 'ANY OF':
+            for operand in operands:
+                if not bool(operand) and operand != 'FAIL':
+                    return 'WIN'
+            return 'FAIL'
+        
+        return
+
     def all_of(self, operands):
         for operand in operands:
             if not bool(operand):
@@ -151,16 +176,6 @@ class Interpreter:
         for node in expr_nodes:
             value = node.value  
             output += str(self.resolve_var(value))
-            # if value is None:
-            #     output.append("NOOB")  
-            # elif isinstance(value, bool):
-            #     output.append("WIN" if value else "FAIL")  
-            # elif isinstance(value, (int, float)):
-            #     output.append(str(value))
-            # elif isinstance(value, str):
-            #     output.append(value)
-            # else:
-            #     output.append(f"UNKNOWN({value})")
         return output
     
     def gimmeh(self, variable_name, symbol_table, terminal_output):
