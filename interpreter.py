@@ -48,6 +48,12 @@ class Interpreter:
             while i < len(node.children):
                 node.value += str(self.resolve_var(node.children[i].value))
                 i += 2
+                
+        elif node.type == 'TYPE_EXPR':
+            original_value = node.children[0].value
+            target_type = node.children[2].value
+            self.type_cast(original_value, target_type)
+            
         
     def evaluate_value(self, node, symbol_table):
         if node.type == 'NUMBR':
@@ -156,4 +162,26 @@ class Interpreter:
             terminal_output += f"Error: {variable_name} not found in symbol table.\n"
         return terminal_output  
 
-
+    def type_cast(self, original_value, target_type):
+        try:
+            if target_type == "NUMBR":
+                casted_value = int(original_value)
+            elif target_type == "NUMBAR":
+                casted_value = float(original_value)
+            elif target_type == "YARN":
+                casted_value = str(original_value)
+            elif target_type == "TROOF":
+                if isinstance(original_value, bool):
+                    casted_value = original_value
+                elif isinstance(original_value, (int, float)):
+                    casted_value = original_value != 0
+                elif isinstance(original_value, str):
+                    casted_value = len(original_value) > 0
+                else:
+                    casted_value = False
+            else:
+                casted_value = "NOOB"  # unsupported type results in NOOB
+        except (ValueError, TypeError):
+            casted_value = "NOOB"  # conversion failed
+                
+        return casted_value

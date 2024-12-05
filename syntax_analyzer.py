@@ -37,7 +37,12 @@ class Parser:
         value = self.current[0]
         node.add_child(ParseTreeNode(type, value))
         self.advance()
-            
+    
+    def store_current(self):
+        type = self.current[1]
+        value = self.current[0]
+        self.advance()
+        return ParseTreeNode(type, value)
     
     def next_token(self, node):
         while self.current and self.current[0] in ['BTW', 'OBTW', 'linebreak']:
@@ -197,10 +202,10 @@ class Parser:
         if self.find_by_name(node, 'VISIBLE', False): node.add_child(self.print_stmt())
         elif self.find_by_name(node, 'GIMMEH', False): node.add_child(self.input_stmt())
         elif self.find_by_type(node, 'IDENTIFIER', False): 
-            self.add_current(node)
-            if self.find_by_name(node, 'R', False): node.add_child(self.assign_stmt())
-            elif self.find_by_name(node, 'IS NOW A', False): node.add_child(self.type_stmt())
-            elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_stmt())
+            identifier = self.store_current()
+            if self.find_by_name(node, 'R', False): node.add_child(self.assign_stmt(identifier))
+            elif self.find_by_name(node, 'IS NOW A', False): node.add_child(self.type_stmt(identifier))
+            elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_stmt(identifier))
         elif self.find_by_name(node, l.EXPR_KEYWORDS, False): 
             node.add_child(self.expr())
             if self.find_by_name(node, 'O RLY?', False): node.add_child(self.if_stmt())
@@ -238,17 +243,18 @@ class Parser:
         return node
     
     
-    def assign_stmt(self):
+    def assign_stmt(self, identifier):
         node = ParseTreeNode('ASSIGN_STMT', None)
-        
+        node.add_child(identifier)
         self.add_current(node)
         node.add_child(self.expr())
         
         return node
     
     
-    def type_stmt(self):
+    def type_stmt(self, identifier):
         node = ParseTreeNode('TYPE_STMT', None)
+        node.add_child(identifier)
         self.add_current(node)
         if self.find_by_type(node, l.DATA_TYPES, True): self.add_current(node)
 
@@ -273,8 +279,9 @@ class Parser:
         return node 
     
     
-    def switch_stmt(self):
+    def switch_stmt(self, identifier):
         node = ParseTreeNode('SWITCH_STATEMENT', None)
+        node.add_child(identifier)
         self.add_current(node)
         while self.find_by_name(node, 'OMG', False):
             self.add_current(node)
