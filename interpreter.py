@@ -20,7 +20,10 @@ class Interpreter:
             self.declare_variable(node)
                 
         elif node.type == 'EXPRESSION':
-            node.value = node.children[0].value
+            node.value = self.resolve_var(node.children[0].value)
+            if node.children[0].value == 'NOT':
+                node.value = 'FAIL' if self.resolve_var(node.children[1].value) and  self.resolve_var(node.children[1].value) != 'FAIL'  else 'WIN'
+                print(self.resolve_var(node.children[1].value))
             
         elif node.type in l.DATA_TYPES:
             node.value = self.evaluate_value(node, self.symbol_table)
@@ -28,7 +31,14 @@ class Interpreter:
         elif node.type == 'BIN_EXPR':
             operand1 = self.resolve_var(node.children[1].value)
             operand2 = self.resolve_var(node.children[3].value)
-            node.value = self.perform_operation(node.children[0].value, operand1, operand2)
+            node.value = self.perform_bin_op(node.children[0].value, operand1, operand2)
+        
+        elif node.type == 'ASSIGN_STMT':
+            var_name = node.children[0].value
+            new_value = node.children[2].value
+            self.symbol_table[var_name] = {
+                'value': new_value
+            }
         
         elif node.type == 'INPUT_STMT':
             var_name = node.children[1].value
@@ -50,9 +60,10 @@ class Interpreter:
                 i += 2
                 
         elif node.type == 'TYPE_EXPR':
-            original_value = node.children[0].value
-            target_type = node.children[2].value
-            self.type_cast(original_value, target_type)
+            original_value = self.resolve_var(node.children[1].value)
+            target_type = node.children[2].type
+            print(target_type)
+            node.value = self.type_cast(original_value, target_type)
             
         
     def evaluate_value(self, node, symbol_table):
@@ -64,7 +75,7 @@ class Interpreter:
             # remove quotes from string
             return node.value[1:-1]
         elif node.type == 'TROOF':
-            return node.value == 'WIN'
+            return 'WIN' if node.value == 'WIN' else 'FAIL'
         return node.value
     
     # takes a value and resolves it if it is a variable, otherwise returns the value
@@ -92,7 +103,10 @@ class Interpreter:
                 'type': 'NOOB'
             }
     
-    def perform_operation(self, operator, operand1, operand2):
+    def perform_bin_op(self, operator, operand1, operand2):
+        if operand1 == 'FAIL': operand1 = False
+        if operand2 == 'FAIL': operand2 = False
+        
         try:
             if operator == 'SUM OF':
                 return operand1 + operand2
@@ -108,6 +122,12 @@ class Interpreter:
                 return max(operand1, operand2)
             elif operator == 'SMALLR OF':
                 return min(operand1, operand2)
+            elif operator == 'BOTH OF':
+                return 'WIN' if (operand1 and operand2) else 'FAIL'
+            elif operator == 'EITHER OF':
+                return 'WIN' if (operand1 or operand2) else 'FAIL'
+            elif operator == 'WON OF':
+                return 'WIN' if (operand1 or operand2) and not (operand1 and operand2) else 'FAIL'
         except Exception as e:
             print(str(e))
             raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
@@ -172,11 +192,11 @@ class Interpreter:
                 casted_value = str(original_value)
             elif target_type == "TROOF":
                 if isinstance(original_value, bool):
-                    casted_value = original_value
+                    casted_value = 'WIN' if original_value else 'FAIL'
                 elif isinstance(original_value, (int, float)):
-                    casted_value = original_value != 0
+                    casted_value = 'WIN' if original_value != 0 else 'FAIL'
                 elif isinstance(original_value, str):
-                    casted_value = len(original_value) > 0
+                    casted_value = 'WIN' if len(original_value) > 0 else 'FAIL'
                 else:
                     casted_value = False
             else:
