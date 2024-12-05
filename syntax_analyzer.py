@@ -55,10 +55,10 @@ class Parser:
             return True
         else:
             if required:
-                print("Unexpected token: " + self.current[0] + "'." + 
-                      (" Expected '" + str(name) + "' " + str(self.index)))
-                #raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
-                #    (" Expected '" + str(name) + "'" if str(name) != None else None) )
+                #print("Unexpected token: " + self.current[0] + "'." + 
+                #      (" Expected '" + str(name) + "' " + str(self.index)))
+                raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
+                    (" Expected '" + str(name) + "'" if str(name) != None else None) )
             return False
         
         
@@ -68,10 +68,10 @@ class Parser:
             return True
         else:
             if required:
-                print("Unexpected token: " + self.current[0] + "'." + 
-                      (" Expected '" + str(type) + "' " + str(self.index)))
-                # raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
-                #     (" Expected '" + str(type) + "'" if str(type) != None else None) )
+                #print("Unexpected token: " + self.current[0] + "'." + 
+                #      (" Expected '" + str(type) + "' " + str(self.index)))
+                raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
+                    (" Expected '" + str(type) + "'" if str(type) != None else None) )
             return False
            
            

@@ -184,30 +184,34 @@ def execFile():
         parse_tree = parser_instance.parse()
         
         interpreter_instance = interpreter.Interpreter(parse_tree)
-        interpreter_instance.interpret()
-
+        output = interpreter_instance.interpret()
+        print(output)
+        
         for var_name, var_value in interpreter_instance.symbol_table.items():
             symbol_table.insert('', END, values=(var_name, var_value['value']))
 
-        for child in parse_tree.children:
-            if child.type == 'CODE_SECTION':
-                for stmt in child.children:
-                    if stmt.type == 'STATEMENT':
-                        for inner_child in stmt.children:
-                            if inner_child.type == 'PRINT_STMT':
-                                for expr in inner_child.children:
-                                    if expr.type == 'EXPRESSION':
-                                        # print(expr.value)
-                                        # terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
-                                        terminal.insert(END, str(expr.value) + "\n")
-                                        terminal.see(END)
-                            elif inner_child.type == 'INPUT_STMT':
-                                #update symbol table after processing GIMMEH
-                                parser_instance.input_stmt()
-                                #refresh symbol table in the GUI
-                                symbol_table.delete(*symbol_table.get_children())
-                                for var_name, var_value in parser_instance.symbol_table.items():
-                                    symbol_table.insert('', END, values=(var_name, var_value))
+        for line in output:
+            terminal.insert(END, str(line) + '\n')
+        
+        # for child in parse_tree.children:
+        #     if child.type == 'CODE_SECTION':
+        #         for stmt in child.children:
+        #             if stmt.type == 'STATEMENT':
+        #                 for inner_child in stmt.children:
+        #                     if inner_child.type == 'PRINT_STMT':
+        #                         for expr in inner_child.children:
+        #                             if expr.type == 'EXPRESSION':
+        #                                 # print(expr.value)
+        #                                 # terminal.insert(END, str(extract_value(expr, parser_instance.symbol_table)) + "\n")
+        #                                 terminal.insert(END, str(expr.value) + "\n")
+        #                                 terminal.see(END)
+        #                     # elif inner_child.type == 'INPUT_STMT':
+        #                     #     #update symbol table after processing GIMMEH
+        #                     #     parser_instance.input_stmt()
+        #                     #     #refresh symbol table in the GUI
+        #                     #     symbol_table.delete(*symbol_table.get_children())
+        #                     #     for var_name, var_value in interpreter_instance.symbol_table.items():
+        #                     #         symbol_table.insert('', END, values=(var_name, var_value['value']))
 
     except Exception as e:
                         terminal.insert(END, f"Error: {str(e)}\n")

@@ -6,12 +6,13 @@ class Interpreter:
     def __init__(self, root):
         self.root = root
         self.symbol_table = {}
+        self.output = []
     
     def interpret(self):
-        return self.interpret_node(self.root)
+        self.interpret_node(self.root)
+        return self.output
     
     def interpret_node(self, node):
-        
         for child in node.children:
             self.interpret_node(child)
             
@@ -24,14 +25,29 @@ class Interpreter:
         elif node.type in l.DATA_TYPES:
             node.value = self.evaluate_value(node, self.symbol_table)
             
-        elif node.type == 'IDENTIFIER':
-            if node.value in self.symbol_table.keys():
-                node.value = self.evaluate_value(node, self.symbol_table)
-            
         elif node.type == 'BIN_EXPR':
             operand1 = self.resolve_var(node.children[1].value)
             operand2 = self.resolve_var(node.children[3].value)
             node.value = self.perform_operation(node.children[0].value, operand1, operand2)
+        
+        elif node.type == 'INPUT_STMT':
+            var_name = node.children[1].value
+            self.gimmeh(var_name, self.symbol_table, '')
+            
+        elif node.type == 'PRINT_STMT':
+            expr_nodes = []
+            i = 1
+            while i < len(node.children):
+                expr_nodes.append(node.children[i])
+                i += 2
+            self.output.append(self.print_visible(expr_nodes)) 
+            
+        elif node.type == 'CONCAT_EXPR':
+            node.value = str(self.resolve_var(node.children[1].value))
+            i = 3
+            while i < len(node.children):
+                node.value += str(self.resolve_var(node.children[i].value))
+                i += 2
         
     def evaluate_value(self, node, symbol_table):
         if node.type == 'NUMBR':
@@ -43,8 +59,6 @@ class Interpreter:
             return node.value[1:-1]
         elif node.type == 'TROOF':
             return node.value == 'WIN'
-        elif node.type == 'IDENTIFIER':
-            return symbol_table.get(node.value, 'NOOB')['value']
         return node.value
     
     # takes a value and resolves it if it is a variable, otherwise returns the value
@@ -59,7 +73,7 @@ class Interpreter:
         var_name = node.children[1].value
         
         if var_name in list(self.symbol_table.keys()):
-            print("Variable " + var_name + " has already been declared")
+            raise NameError("Variable " + var_name + " has already been declared")
         
         if len(node.children) >= 3:
             self.symbol_table[var_name] = {
@@ -89,7 +103,8 @@ class Interpreter:
             elif operator == 'SMALLR OF':
                 return min(operand1, operand2)
         except Exception as e:
-            return f"ERROR: {str(e)}"
+            print(str(e))
+            raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
         
         return None
     
@@ -106,22 +121,21 @@ class Interpreter:
         return False
     
     def print_visible(self, expr_nodes):
-        output = []
+        output = ''
         for node in expr_nodes:
             value = node.value  
-
-            if value is None:
-                output.append("NOOB")  
-            elif isinstance(value, bool):
-                output.append("WIN" if value else "FAIL")  
-            elif isinstance(value, (int, float)):
-                output.append(str(value))
-            elif isinstance(value, str):
-                output.append(value)
-            else:
-                output.append(f"UNKNOWN({value})")
-
-        return " ".join(output)
+            output += str(self.resolve_var(value))
+            # if value is None:
+            #     output.append("NOOB")  
+            # elif isinstance(value, bool):
+            #     output.append("WIN" if value else "FAIL")  
+            # elif isinstance(value, (int, float)):
+            #     output.append(str(value))
+            # elif isinstance(value, str):
+            #     output.append(value)
+            # else:
+            #     output.append(f"UNKNOWN({value})")
+        return output
     
     def gimmeh(self, variable_name, symbol_table, terminal_output):
         terminal_output += f"Enter value for {variable_name}:\n"
@@ -129,15 +143,13 @@ class Interpreter:
         user_input = input(f"Enter value for {variable_name}: ").strip()
 
         if variable_name in symbol_table:
-            var_type = type(symbol_table[variable_name])
+            var_type = symbol_table[variable_name]['type']
             try:
-                if var_type == int:
-                    symbol_table[variable_name] = int(user_input)
-                elif var_type == float:
-                    symbol_table[variable_name] = float(user_input)
-                else: 
-                    symbol_table[variable_name] = user_input
-                terminal_output += f"{variable_name} set to {symbol_table[variable_name]}\n"
+                symbol_table[variable_name] = {
+                    'value': int(user_input),
+                    'type': var_type
+                }
+                terminal_output += f"{variable_name} set to {symbol_table[variable_name]['value']}\n"
             except ValueError:
                 terminal_output += f"Error: Invalid value for {variable_name}.\n"
         else:
