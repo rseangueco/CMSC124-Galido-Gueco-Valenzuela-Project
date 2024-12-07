@@ -134,18 +134,6 @@ class Interpreter:
         
         return None
     
-    def all_of(self, operands):
-        for operand in operands:
-            if not bool(operand):
-                return False
-        return True
-
-    def any_of(self, operands):
-        for operand in operands:
-            if bool(operand):
-                return True
-        return False
-    
     def print_visible(self, expr_nodes):
         output = ''
         for node in expr_nodes:
