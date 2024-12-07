@@ -191,6 +191,7 @@ def execFile():
 
         for line in output:
             terminal.insert(END, str(line) + '\n')
+            print(line)
         
         # for child in parse_tree.children:
         #     if child.type == 'CODE_SECTION':
