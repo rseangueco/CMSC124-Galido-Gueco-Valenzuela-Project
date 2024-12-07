@@ -1,12 +1,14 @@
 import syntax_analyzer
+from tkinter import *
 import lexemes as l
 
 class Interpreter:  
     
-    def __init__(self, root):
+    def __init__(self, root, terminal):
         self.root = root
         self.symbol_table = {}
         self.output = []
+        self.terminal = terminal
     
     def interpret(self):
         self.interpret_node(self.root)
@@ -180,7 +182,9 @@ class Interpreter:
         for node in expr_nodes:
             value = node.value  
             output += str(self.resolve_var(value))
-        return output
+            self.terminal.insert(END, str(output) + '\n')
+            print(output)
+        # return output
     
     def gimmeh(self, variable_name, symbol_table, terminal_output):
         terminal_output += f"Enter value for {variable_name}:\n"

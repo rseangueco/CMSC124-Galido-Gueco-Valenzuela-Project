@@ -183,15 +183,15 @@ def execFile():
         parser_instance = parser.Parser(tokens)
         parse_tree = parser_instance.parse()
         
-        interpreter_instance = interpreter.Interpreter(parse_tree)
+        interpreter_instance = interpreter.Interpreter(parse_tree, terminal)
         output = interpreter_instance.interpret()
         
         for var_name, var_value in interpreter_instance.symbol_table.items():
             symbol_table.insert('', END, values=(var_name, var_value['value']))
 
-        for line in output:
-            terminal.insert(END, str(line) + '\n')
-            print(line)
+        # for line in output:
+        #     terminal.insert(END, str(line) + '\n')
+        #     print(line)
         
         # for child in parse_tree.children:
         #     if child.type == 'CODE_SECTION':
