@@ -28,6 +28,31 @@ class Interpreter:
                 elif node.children[i].value == 'OIC':
                     return
                 i+=2
+        elif node.type == 'LOOP_STMT':
+            self.interpret_node(node.children[4])
+            self.interpret_node(node.children[6])
+            
+            inc = node.children[2].value
+            term = node.children[5].value
+            var = node.children[4].value
+            condition = self.resolve_var(node.children[6].value)
+            
+            print("inc = " + str(inc) + "\nterm = " + str(term) + "\nvar = " + str(var) + "\ncondition = " + str(condition))
+            if (term == 'WILE' and condition == 'WIN') or (term == 'TIL' and condition == 'FAIL'):
+                self.interpret_node(node.children[7])
+                if inc == 'UPPIN':
+                    self.symbol_table[var] = {
+                        'value': self.perform_bin_op('SUM OF', self.resolve_var(var), 1),
+                        'type': 'NUMBR'
+                    }
+                elif inc == 'NERFIN':
+                    self.symbol_table[var] = {
+                        'value': self.perform_bin_op('DIFF OF', self.resolve_var(var), 1),
+                        'type': 'NUMBR'
+                    }
+                self.interpret_node(node)
+                    
+            
         else:
             for child in node.children:
                 self.interpret_node(child)
