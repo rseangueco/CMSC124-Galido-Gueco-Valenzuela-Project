@@ -208,7 +208,8 @@ class Parser:
             elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_stmt(identifier))
         elif self.find_by_name(node, l.EXPR_KEYWORDS, False): 
             node.add_child(self.expr())
-            if self.find_by_name(node, 'O RLY?', False): node.add_child(self.if_stmt())
+            if self.find_by_name(node, 'O RLY?', False):
+                node.add_child(self.if_stmt())
             elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_stmt())
         elif self.find_by_name(node, 'IM IN YR', False): node.add_child(self.loop_stmt())
         elif self.find_by_name(node, "I IZ", False):
@@ -263,20 +264,28 @@ class Parser:
 
     def if_stmt(self):
         node = ParseTreeNode('IF_STATEMENT', None)
+
         self.add_current(node)
         if self.find_by_name(node, 'YA RLY', True): 
             self.add_current(node)
             node.add_child(self.code_section())
+
         while self.find_by_name(node, 'MEBBE', False):
-            self.add_current(node)
-            node.add_child(self.expr())
+            node.add_child(self.elif_stmt())
             node.add_child(self.code_section())
         if self.find_by_name(node, 'NO WAI', False):
             self.add_current(node)
             node.add_child(self.code_section())
         if self.find_by_name(node, 'OIC', True): self.add_current(node)
         
-        return node 
+        return node
+        
+    def elif_stmt(self):
+        node = ParseTreeNode('ELIF_STATEMENT', None)
+        self.add_current(node)
+        node.add_child(self.expr())
+
+        return node
     
     
     def switch_stmt(self, identifier):
