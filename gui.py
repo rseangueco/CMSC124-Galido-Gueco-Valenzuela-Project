@@ -71,7 +71,7 @@ symbol_label = Label(root, text="Symbol Table", font=('Arial', 15), borderwidth=
 symbol_label.place(x=1055, y=40, height=40, width=335)
 
 terminal = scrolledtext.ScrolledText(root, font=('Consolas', 10), bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5")
-terminal.place(x=10, y=440, height=450, width=1380)
+terminal.place(x=10, y=440, height=350, width=1380)
 
 #button actions
 file_path = ''
