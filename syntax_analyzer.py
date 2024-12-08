@@ -147,6 +147,8 @@ class Parser:
         elif self.find_by_name(node, "NOT", False):
             self.add_current(node)
             node.add_child(self.expr())
+        elif self.find_by_name(node, "I IZ", False):
+            node.add_child(self.func_call_expr())
         else:
             print("Invalid Expression: " + self.current[0])
             return
@@ -212,8 +214,6 @@ class Parser:
                 node.add_child(self.if_stmt())
             elif self.find_by_name(node, 'WTF?', False): node.add_child(self.switch_stmt())
         elif self.find_by_name(node, 'IM IN YR', False): node.add_child(self.loop_stmt())
-        elif self.find_by_name(node, "I IZ", False):
-            node.add_child(self.func_call_stmt())
         elif self.find_by_name(node, 'FOUND YR', False):
             node.add_child(self.return_stmt())
         elif self.find_by_name(node, 'GTFO', False):
@@ -337,7 +337,7 @@ class Parser:
         return node
     
     
-    def func_call_stmt(self):
+    def func_call_expr(self):
         node = ParseTreeNode('FUNC_CALL_STMT', None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
@@ -368,6 +368,7 @@ class Parser:
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         while self.find_by_name(node, 'AN', False): 
             self.add_current(node)
-            if self.find_by_name(node, 'YR', True): node.add_child(self.parameter())
+            if self.find_by_name(node, 'YR', True): self.add_current(node)
+            if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
             
         return node

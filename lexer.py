@@ -86,7 +86,7 @@ def tokenize(text):
                     tokens.append((token, "TROOF"))
                     token = ""
             #identifiers
-            elif bool(re.search(l.IDENTIFIER, token)):
+            elif bool(re.search(l.IDENTIFIER, token)) or token == 'IT':
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     if token not in l.separatedkeywords:
 
