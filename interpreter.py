@@ -156,6 +156,15 @@ class Interpreter:
                 i += 2
             self.output.append(self.print_visible(expr_nodes)) 
             
+        elif node.type == 'TYPE_STMT':
+            var_name = node.children[0].value
+            target_type = node.children[2].type
+            original_value = self.symbol_table.get(var_name, 'NOOB')['value']
+            self.symbol_table[var_name] = {
+                'value': self.type_cast(original_value, target_type),
+                'type': target_type
+            }
+            
         elif node.type == 'CONCAT_EXPR':
             node.value = str(self.resolve_var(node.children[1].value))
             i = 3
@@ -409,7 +418,7 @@ class Interpreter:
             var_type = self.symbol_table[variable_name]['type']
             try:
 
-                symbol_table[variable_name] = {
+                self.symbol_table[variable_name] = {
                     'value': user_input,
                     'type': var_type
                 }
@@ -421,85 +430,91 @@ class Interpreter:
         
         return terminal_output  
 
-    def type_cast(self, original_value, target_type):
-        try:
-            if target_type == "NUMBR":
-                casted_value = int(original_value)
-            elif target_type == "NUMBAR":
-                casted_value = float(original_value)
-            elif target_type == "YARN":
-                casted_value = str(original_value)
-            elif target_type == "TROOF":
-                if isinstance(original_value, bool):
-                    casted_value = 'WIN' if original_value else 'FAIL'
-                elif isinstance(original_value, (int, float)):
-                    casted_value = 'WIN' if original_value != 0 else 'FAIL'
-                elif isinstance(original_value, str):
-                    casted_value = 'WIN' if len(original_value) > 0 else 'FAIL'
-                else:
-                    casted_value = False
-            else:
-                casted_value = "NOOB"  # unsupported type results in NOOB
-        except (ValueError, TypeError):
-            casted_value = "NOOB"  # conversion failed
-                
-        return casted_value
-
     # def type_cast(self, original_value, target_type):
-    #     if original_value == "none":
-    #         if target_type == "TROOF":
-    #             return 'FAIL'
-    #         elif target_type == "NUMBR":
-    #             return 0
-    #         elif target_type == "NUMBAR":
-    #             return 0.0
-    #         elif target_type == "YARN":
-    #             return ""
-    #         else:
-    #             return "NOOB"
-
     #     try:
     #         if target_type == "NUMBR":
-    #             if original_value == "WIN":
-    #                 return 1
-    #             elif original_value == "FAIL":
-    #                 return 0
-    #             elif isinstance(original_value, float):
-    #                 return int(original_value)
-    #             elif isinstance(original_value, str):
-    #                 # if bool(re.match(l.NUMBR, original_value)):
-    #                     return int(original_value)
-    #             else:
-    #                 raise TypeError("Invalid type: Cannot perform type casting to NUMBR on" + str(original_value))
+    #             casted_value = int(original_value)
     #         elif target_type == "NUMBAR":
-    #             if original_value == "WIN":
-    #                 return 1.0
-    #             elif original_value == "FAIL":
-    #                 return 0.0
-    #             elif isinstance(original_value, int):
-    #                 return float(original_value)
-    #             elif isinstance(original_value, str):
-    #                 # if bool(re.match(l.NUMBAR, original_value)):
-    #                     return int(original_value)
-    #             else:
-    #                 raise TypeError("Invalid type: Cannot perform type casting to NUMBAR on" + str(original_value))
+    #             casted_value = float(original_value)
     #         elif target_type == "YARN":
-    #             if isinstance(original_value, float):
-    #                 return str(round(original_value, 2))
-    #             else:
-    #                 return str(original_value)
+    #             casted_value = str(original_value)
     #         elif target_type == "TROOF":
     #             if isinstance(original_value, bool):
-    #                 return 'WIN' if original_value else 'FAIL'
+    #                 casted_value = 'WIN' if original_value else 'FAIL'
     #             elif isinstance(original_value, (int, float)):
-    #                 return 'WIN' if original_value != 0 else 'FAIL'
+    #                 casted_value = 'WIN' if original_value != 0 else 'FAIL'
     #             elif isinstance(original_value, str):
-    #                 return 'WIN' if len(original_value) > 0 else 'FAIL'
+    #                 casted_value = 'WIN' if len(original_value) > 0 else 'FAIL'
     #             else:
-    #                 return 'FAIL' 
+    #                 casted_value = False
     #         else:
-    #             return "NOOB"  # unsupported type results in NOOB
+    #             casted_value = "NOOB"  # unsupported type results in NOOB
     #     except (ValueError, TypeError):
-    #        return "NOOB"  # conversion failed
+    #         casted_value = "NOOB"  # conversion failed
                 
-    #     # return casted_value
+    #     return casted_value
+
+    def type_cast(self, original_value, target_type):
+        print(str(original_value) + " " + target_type)
+        if original_value == "none":
+            if target_type == "TROOF":
+                return 'FAIL'
+            elif target_type == "NUMBR":
+                return 0
+            elif target_type == "NUMBAR":
+                return 0.0
+            elif target_type == "YARN":
+                return ""
+            else:
+                return "NOOB"
+
+        try:
+            if target_type == "NUMBR":
+                if original_value == "WIN":
+                    return 1
+                elif original_value == "FAIL":
+                    return 0
+                elif isinstance(original_value, float):
+                    return int(original_value)
+                elif isinstance(original_value, str):
+                    # if bool(re.match(l.NUMBR, original_value)):
+                        return int(original_value)
+                elif isinstance(original_value, int):
+                    return original_value
+                else:
+                    print('test')
+                    raise TypeError("Invalid type: Cannot perform type casting to NUMBR on" + str(original_value))
+            elif target_type == "NUMBAR":
+                if original_value == "WIN":
+                    return 1.0
+                elif original_value == "FAIL":
+                    return 0.0
+                elif isinstance(original_value, int):
+                    return float(original_value)
+                elif isinstance(original_value, str):
+                    # if bool(re.match(l.NUMBAR, original_value)):
+                        return float(original_value)
+                elif isinstance(original_value, float):
+                    return original_value
+                else:
+                    raise TypeError("Invalid type: Cannot perform type casting to NUMBAR on" + str(original_value))
+            elif target_type == "YARN":
+                if isinstance(original_value, float):
+                    return str(round(original_value, 2))
+                else:
+                    return str(original_value)
+            elif target_type == "TROOF":
+                if isinstance(original_value, bool):
+                    return 'WIN' if original_value else 'FAIL'
+                elif isinstance(original_value, (int, float)):
+                    return 'WIN' if original_value != 0 else 'FAIL'
+                elif isinstance(original_value, str):
+                    return 'WIN' if len(original_value) > 0 else 'FAIL'
+                else:
+                    return 'FAIL' 
+            else:
+                return "NOOB"  # unsupported type results in NOOB
+        except (ValueError, TypeError):
+           return "NOOB"  # conversion failed
+                
+        # return casted_value
