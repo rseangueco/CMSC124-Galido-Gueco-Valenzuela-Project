@@ -2,6 +2,7 @@ import syntax_analyzer
 import tkinter as tk
 from tkinter import *
 import lexemes as l
+import re
 
 class Interpreter:  
     
@@ -188,40 +189,102 @@ class Interpreter:
                 'type': 'NOOB'
             }
     
+    # def perform_bin_op(self, operator, operand1, operand2):
+    #     if operand1 == 'FAIL': operand1 = False
+    #     if operand2 == 'FAIL': operand2 = False
+        
+    #     try:
+    #         if operator == 'SUM OF':
+    #             return operand1 + operand2
+    #         elif operator == 'DIFF OF':
+    #             return operand1 - operand2
+    #         elif operator == 'PRODUKT OF':
+    #             return operand1 * operand2
+    #         elif operator == 'QUOSHUNT OF':
+    #             return operand1 / operand2
+    #         elif operator == 'MOD OF':
+    #             return operand1 % operand2
+    #         elif operator == 'BIGGR OF':
+    #             return max(operand1, operand2)
+    #         elif operator == 'SMALLR OF':
+    #             return min(operand1, operand2)
+    #         elif operator == 'BOTH OF':
+    #             return 'WIN' if (operand1 and operand2) else 'FAIL'
+    #         elif operator == 'EITHER OF':
+    #             return 'WIN' if (operand1 or operand2) else 'FAIL'
+    #         elif operator == 'WON OF':
+    #             return 'WIN' if (operand1 or operand2) and not (operand1 and operand2) else 'FAIL'
+    #         elif operator == 'BOTH SAEM':
+    #             return 'WIN' if (operand1 == operand2) else 'FAIL'
+    #         elif operator == 'DIFFRINT':
+    #             return 'WIN' if (operand1 != operand2) else 'FAIL'
+    #     except Exception as e:
+    #         print(str(e))
+    #         raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
+        
+    #     return None
+    
     def perform_bin_op(self, operator, operand1, operand2):
         if operand1 == 'FAIL': operand1 = False
         if operand2 == 'FAIL': operand2 = False
         
         try:
-            if operator == 'SUM OF':
-                return operand1 + operand2
-            elif operator == 'DIFF OF':
-                return operand1 - operand2
-            elif operator == 'PRODUKT OF':
-                return operand1 * operand2
-            elif operator == 'QUOSHUNT OF':
-                return operand1 / operand2
-            elif operator == 'MOD OF':
-                return operand1 % operand2
-            elif operator == 'BIGGR OF':
-                return max(operand1, operand2)
-            elif operator == 'SMALLR OF':
-                return min(operand1, operand2)
-            elif operator == 'BOTH OF':
-                return 'WIN' if (operand1 and operand2) else 'FAIL'
-            elif operator == 'EITHER OF':
-                return 'WIN' if (operand1 or operand2) else 'FAIL'
-            elif operator == 'WON OF':
-                return 'WIN' if (operand1 or operand2) and not (operand1 and operand2) else 'FAIL'
-            elif operator == 'BOTH SAEM':
-                return 'WIN' if (operand1 == operand2) else 'FAIL'
-            elif operator == 'DIFFRINT':
-                return 'WIN' if (operand1 != operand2) else 'FAIL'
+                if operator == 'SUM OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBR") + self.type_cast(operand2, "NUMBR")
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") + self.type_cast(operand2, "NUMBAR")
+                elif operator == 'DIFF OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBR") - self.type_cast(operand2, "NUMBR")
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") - self.type_cast(operand2, "NUMBAR")
+                elif operator == 'PRODUKT OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBR") * self.type_cast(operand2, "NUMBR")
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") * self.type_cast(operand2, "NUMBAR")
+                elif operator == 'QUOSHUNT OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBR") / self.type_cast(operand2, "NUMBR")
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") / self.type_cast(operand2, "NUMBAR")
+                elif operator == 'MOD OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBR") % self.type_cast(operand2, "NUMBR")
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") % self.type_cast(operand2, "NUMBAR")
+                elif operator == 'BIGGR OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return max(self.type_cast(operand1, "NUMBR"), self.type_cast(operand2, "NUMBR"))
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") % self.type_cast(operand2, "NUMBAR")
+                elif operator == 'SMALLR OF':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return min(self.type_cast(operand1, "NUMBR"), self.type_cast(operand2, "NUMBR"))
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return self.type_cast(operand1, "NUMBAR") % self.type_cast(operand2, "NUMBAR")
+                elif operator == 'BOTH OF':
+                    return 'WIN' if (operand1 and operand2) else 'FAIL'
+                elif operator == 'EITHER OF':
+                    return 'WIN' if (operand1 or operand2) else 'FAIL'
+                elif operator == 'WON OF':
+                    return 'WIN' if (operand1 or operand2) and not (operand1 and operand2) else 'FAIL'
+                elif operator == 'BOTH SAEM':
+                    if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                        return 'WIN' if (self.type_cast(operand1, "NUMBR") == self.type_cast(operand2, "NUMBR")) else 'FAIL'
+                    elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                        return 'WIN' if (self.type_cast(operand1, "NUMBAR") == self.type_cast(operand2, "NUMBAR")) else 'FAIL'
+                    else: 
+                        return 'WIN' if (operand1 == operand2) else 'FAIL'
+                elif operator == 'DIFFRINT':
+                    return 'WIN' if (operand1 != operand2) else 'FAIL'
+                
         except Exception as e:
             print(str(e))
             raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
         
-        return None
+        return None 
     
     def perform_inf_op(self, operator, operands):
         if operator == 'ALL OF':
@@ -298,7 +361,7 @@ class Interpreter:
             var_type = symbol_table[variable_name]['type']
             try:
                 symbol_table[variable_name] = {
-                    'value': int(user_input),
+                    'value': user_input,
                     'type': var_type
                 }
                 terminal_output += f"{variable_name} set to {symbol_table[variable_name]['value']}\n"
@@ -331,3 +394,62 @@ class Interpreter:
             casted_value = "NOOB"  # conversion failed
                 
         return casted_value
+
+    # def type_cast(self, original_value, target_type):
+    #     if original_value == "none":
+    #         if target_type == "TROOF":
+    #             return 'FAIL'
+    #         elif target_type == "NUMBR":
+    #             return 0
+    #         elif target_type == "NUMBAR":
+    #             return 0.0
+    #         elif target_type == "YARN":
+    #             return ""
+    #         else:
+    #             return "NOOB"
+
+    #     try:
+    #         if target_type == "NUMBR":
+    #             if original_value == "WIN":
+    #                 return 1
+    #             elif original_value == "FAIL":
+    #                 return 0
+    #             elif isinstance(original_value, float):
+    #                 return int(original_value)
+    #             elif isinstance(original_value, str):
+    #                 # if bool(re.match(l.NUMBR, original_value)):
+    #                     return int(original_value)
+    #             else:
+    #                 raise TypeError("Invalid type: Cannot perform type casting to NUMBR on" + str(original_value))
+    #         elif target_type == "NUMBAR":
+    #             if original_value == "WIN":
+    #                 return 1.0
+    #             elif original_value == "FAIL":
+    #                 return 0.0
+    #             elif isinstance(original_value, int):
+    #                 return float(original_value)
+    #             elif isinstance(original_value, str):
+    #                 # if bool(re.match(l.NUMBAR, original_value)):
+    #                     return int(original_value)
+    #             else:
+    #                 raise TypeError("Invalid type: Cannot perform type casting to NUMBAR on" + str(original_value))
+    #         elif target_type == "YARN":
+    #             if isinstance(original_value, float):
+    #                 return str(round(original_value, 2))
+    #             else:
+    #                 return str(original_value)
+    #         elif target_type == "TROOF":
+    #             if isinstance(original_value, bool):
+    #                 return 'WIN' if original_value else 'FAIL'
+    #             elif isinstance(original_value, (int, float)):
+    #                 return 'WIN' if original_value != 0 else 'FAIL'
+    #             elif isinstance(original_value, str):
+    #                 return 'WIN' if len(original_value) > 0 else 'FAIL'
+    #             else:
+    #                 return 'FAIL' 
+    #         else:
+    #             return "NOOB"  # unsupported type results in NOOB
+    #     except (ValueError, TypeError):
+    #        return "NOOB"  # conversion failed
+                
+    #     # return casted_value
