@@ -424,6 +424,6 @@ class Interpreter:
                 else:
                     return 'FAIL' 
             else:
-                return "NOOB"  # unsupported type results in NOOB
+                raise TypeError("Unable to cast " + str(original_value) + " to " + str(target_type))
         except (ValueError, TypeError):
-           return "NOOB"  # conversion failed
+            raise TypeError("Unable to cast " + str(original_value) + " to " + str(target_type)) # conversion failed
