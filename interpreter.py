@@ -22,8 +22,29 @@ class Interpreter:
         self.interpret_node(self.root)
         return self.output
     
-    def interpret_node(self, node):     
-        if node.type == 'SWITCH_STATEMENT':
+    def interpret_node(self, node):  
+        if node.type == 'IF_STATEMENT':
+            if_value = self.symbol_table.get('IT', 'NOOB')['value']
+            i = 1
+            while i < len(node.children):
+                print(if_value)
+                if node.children[i].value == 'YA RLY':
+                    if if_value == 'WIN':
+                        self.interpret_node(node.children[i+1])
+                        return
+                elif node.children[i].type == 'ELIF_STATEMENT':
+                    self.interpret_node(node.children[i].children[1])
+                    elif_value = self.symbol_table.get('IT', 'NOOB')['value']
+                    if elif_value == 'WIN':
+                        self.interpret_node(node.children[i+1])
+                        return
+                elif node.children[i].value == 'NO WAI':
+                    self.interpret_node(node.children[i+1])
+                    return
+                elif node.children[i].value == 'OIC':
+                    return
+                i += 2   
+        elif node.type == 'SWITCH_STATEMENT':
             self.interpret_node(node.children[0])
             switch_value = self.symbol_table.get('IT', 'NOOB')['value']
             i = 2
@@ -62,7 +83,6 @@ class Interpreter:
                     }
                 self.interpret_node(node)
                     
-            
         else:
             for child in node.children:
                 self.interpret_node(child)
