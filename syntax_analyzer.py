@@ -290,11 +290,11 @@ class Parser:
     
     def switch_stmt(self, identifier):
         node = ParseTreeNode('SWITCH_STATEMENT', None)
-        node.add_child(identifier)
+        node.add_child(ParseTreeNode('EXPRESSION', None))
+        node.children[0].add_child(identifier)
         self.add_current(node)
         while self.find_by_name(node, 'OMG', False):
-            self.add_current(node)
-            node.add_child(self.expr())
+            node.add_child(self.switch_case())
             node.add_child(self.code_section())
             if self.find_by_name(node, 'GTFO', False): self.add_current(node)
         if self.find_by_name(node, 'OMGWTF', False): 
@@ -304,6 +304,12 @@ class Parser:
         
         return node
     
+    def switch_case(self):
+        node = ParseTreeNode('SWITCH_CASE', None)
+        self.add_current(node)
+        node.add_child(self.expr())
+        return node
+    
     
     def loop_stmt(self):
         node = ParseTreeNode('LOOP_STMT', None)
@@ -311,7 +317,7 @@ class Parser:
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, ['UPPIN','NERFIN'], True): self.add_current(node)
         if self.find_by_name(node, 'YR', True): self.add_current(node)
-        if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
+        node.add_child(self.expr())
         if self.find_by_name(node, ['TIL','WILE'], True): self.add_current(node)
         node.add_child(self.expr())
         node.add_child(self.code_section())
