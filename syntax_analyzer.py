@@ -31,7 +31,7 @@ class Parser:
         self.index += 1
         self.current = self.tokens[self.index] if self.index < len(self.tokens) else None
     
-    # Adds the current token to a node as a child
+    # adds the current token to a node as a child
     def add_current(self, node):
         type = self.current[1]
         value = self.current[0]

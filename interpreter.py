@@ -4,6 +4,8 @@ from tkinter import *
 import lexemes as l
 import re
 
+# handles the execution of various types of statements and expressions,
+# interacts with the parse tree and maintains a symbol table for variable storage
 class Interpreter:  
     
     def __init__(self, root, terminal):
@@ -16,14 +18,18 @@ class Interpreter:
         self.input_ready = tk.StringVar()
         self.terminal.bind('<Return>', self.on_enter)
     
+    # callback function triggered when the Enter key is pressed in the terminal
+    # signals that input has been received
     def on_enter(self, event):
-        # Signal that input is ready
         self.input_ready.set("input received")
         
+    # starts the interpretation process by visiting the root of the syntax tree
+    # returns the final return value after interpretation
     def interpret(self):
         self.interpret_node(self.root)
         return self.return_val
     
+    # interprets a given node in the syntax tree, handling various statement and expression types recursively
     def interpret_node(self, node): 
         
         if node.type == 'IF_STATEMENT': self.interpret_if_block(node)
@@ -111,7 +117,7 @@ class Interpreter:
         elif node.type == 'RETURN_STMT':
             self.return_val = self.symbol_table.get('IT', 'NOOB')['value'] if len(node.children) > 1 else 'NOOB'
     
-    
+    # interprets an IF block by evaluating the condition and executing the appropriate branch
     def interpret_if_block(self, node):
         if_value = self.symbol_table.get('IT', 'NOOB')['value']
         i = 1
@@ -133,7 +139,7 @@ class Interpreter:
                 return
             i += 2   
     
-    
+    # interprets a SWITCH block by evaluating cases and executing the matching case block
     def interpret_switch_block(self, node):
         self.interpret_node(node.children[0])
         switch_value = self.symbol_table.get('IT', 'NOOB')['value']
@@ -150,7 +156,7 @@ class Interpreter:
                 return
             i+=2
     
-    
+    # interprets a LOOP block, handling variable incrementation and termination conditions
     def interpret_loop_block(self, node):
         self.interpret_node(node.children[4])
         self.interpret_node(node.children[6])
@@ -173,7 +179,7 @@ class Interpreter:
                 }
             self.interpret_node(node)
     
-    
+    # declares a function by storing its parameters and body in the symbol table
     def declare_function(self, node):
         for i in range(0,2):
             self.interpret_node(node.children[i])
@@ -190,7 +196,7 @@ class Interpreter:
             'parameters': parameters
         }
     
-    
+    # calls a function by setting up a new interpreter for its body and passing arguments
     def call_function(self, node):
         func_name = node.children[1].value
         in_parameters = []
@@ -213,7 +219,7 @@ class Interpreter:
         del func_interpreter
         self.terminal.bind('<Return>', self.on_enter)
     
-    
+    # evaluates a node's value based on its type, converting literals to their Python equivalents
     def evaluate_value(self, node):
         if node.type == 'NUMBR':
             return int(node.value)
@@ -234,7 +240,8 @@ class Interpreter:
         else:
             return var_name
 
-
+    # declares a variable and initializes it with a value if provided
+    # raises an error if the variable is already declared
     def declare_variable(self, node):
         var_name = node.children[1].value
         
@@ -252,7 +259,7 @@ class Interpreter:
                 'type': 'NOOB'
             }
     
-    
+    # performs a binary operation (e.g., addition, subtraction) on two operands based on the specified operator
     def perform_bin_op(self, operator, operand1, operand2):
         if operand1 == 'FAIL': operand1 = False
         if operand2 == 'FAIL': operand2 = False
@@ -326,7 +333,7 @@ class Interpreter:
         
         return None 
     
-    
+    # performs an operation with multiple operands, such as AND-ing or OR-ing all values
     def perform_inf_op(self, operator, operands):
         if operator == 'ALL OF':
             for operand in operands:
@@ -342,7 +349,7 @@ class Interpreter:
         
         return
     
-    
+    # concatenates and prints the resolved values of expression nodes
     def print_visible(self, expr_nodes):
         output = ''
         for node in expr_nodes:
@@ -352,16 +359,16 @@ class Interpreter:
         print(output)
         # return output
     
-    
+    # prompts the user for input, assigns the input to a variable in the symbol table, and updates terminal output
     def gimmeh(self, variable_name, terminal_output):
-        # # Insert input prompt
+        # insert input prompt
         # self.terminal.insert(END, f'Enter value for {variable_name}: ')
         self.terminal.see(END)  # Scroll to the end
         self.terminal.focus()
         
-        # Wait for input
+        # wait for input
         self.terminal.wait_variable(self.input_ready)
-        # Get the input, removing the prompt and stripping whitespace
+        # get the input, removing the prompt and stripping whitespace
         user_input = self.terminal.get(1.0, END).strip().split('\n')[-1]
         user_input = user_input.replace(f'Enter value for {variable_name}: ', '').strip()
 
@@ -381,7 +388,7 @@ class Interpreter:
         
         return terminal_output  
 
-
+    # casts a given value to a specified target type following specific type rules
     def type_cast(self, original_value, target_type):
         if original_value == "none":
             if target_type == "TROOF":
