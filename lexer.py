@@ -89,15 +89,26 @@ def tokenize(text):
             elif bool(re.search(l.IDENTIFIER, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
                     if token not in l.separatedkeywords:
-
                         tokens.append((token, "IDENTIFIER"))
                         token = ""
+                    else:
+                        startIndex = -1
+                        tempLine = ''.join(line)
+                        for j in l.keywords:
+                            startIndex = tempLine.find(j)
+                            if startIndex == tempLine.find(token):
+                                break
+                        if startIndex != tempLine.find(token):
+                            tokens.append((token, 'IDENTIFIER'))
+                            token = ""       
+    print(tabulate(tokens, headers=["Lexeme", "Type"], tablefmt="fancy_grid"))
     return tokens
 
 def format_tokens(tokens):
         # debug code
     p = parser.Parser(tokens)
     print(p.parse().print_tree(1))
+    
     return tabulate(tokens, headers=["Lexeme", "Type"], tablefmt="fancy_grid")
             
 def lexer(input):
