@@ -53,6 +53,10 @@ class Interpreter:
                 'type': node.children[0].type
             }
         
+        elif node.type in l.DATA_TYPES:
+            if node.type == 'YARN':
+                node.value = node.value[1:-1]
+                
         elif node.type == 'BIN_EXPR':
             operand1 = self.resolve_var(node.children[1].value)
             operand2 = self.resolve_var(node.children[3].value)
