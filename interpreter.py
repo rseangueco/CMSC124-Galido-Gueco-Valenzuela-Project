@@ -22,9 +22,50 @@ class Interpreter:
         self.interpret_node(self.root)
         return self.output
     
-    def interpret_node(self, node):
-        for child in node.children:
-            self.interpret_node(child)
+    def interpret_node(self, node):     
+        if node.type == 'SWITCH_STATEMENT':
+            self.interpret_node(node.children[0])
+            switch_value = self.symbol_table.get('IT', 'NOOB')['value']
+            i = 2
+            while i < len(node.children):
+                if node.children[i].type == 'SWITCH_CASE':
+                    self.interpret_node(node.children[i])
+                    if node.children[i].value == switch_value:
+                        self.interpret_node(node.children[i+1])
+                        return
+                elif node.children[i].value == 'OMGWTF':
+                    self.interpret_node(node.children[i+1])
+                elif node.children[i].value == 'OIC':
+                    return
+                i+=2
+        elif node.type == 'LOOP_STMT':
+            self.interpret_node(node.children[4])
+            self.interpret_node(node.children[6])
+            
+            inc = node.children[2].value
+            term = node.children[5].value
+            var = node.children[4].value
+            condition = self.resolve_var(node.children[6].value)
+            
+            print("inc = " + str(inc) + "\nterm = " + str(term) + "\nvar = " + str(var) + "\ncondition = " + str(condition))
+            if (term == 'WILE' and condition == 'WIN') or (term == 'TIL' and condition == 'FAIL'):
+                self.interpret_node(node.children[7])
+                if inc == 'UPPIN':
+                    self.symbol_table[var] = {
+                        'value': self.perform_bin_op('SUM OF', self.resolve_var(var), 1),
+                        'type': 'NUMBR'
+                    }
+                elif inc == 'NERFIN':
+                    self.symbol_table[var] = {
+                        'value': self.perform_bin_op('DIFF OF', self.resolve_var(var), 1),
+                        'type': 'NUMBR'
+                    }
+                self.interpret_node(node)
+                    
+            
+        else:
+            for child in node.children:
+                self.interpret_node(child)
             
         if node.type == 'VAR_DECL':
             self.declare_variable(node)
@@ -34,7 +75,7 @@ class Interpreter:
             if node.children[0].value == 'NOT':
                 node.value = 'FAIL' if self.resolve_var(node.children[1].value) and  self.resolve_var(node.children[1].value) != 'FAIL'  else 'WIN'
             self.symbol_table['IT'] = {
-                'value': node.value,
+                'value': self.resolve_var(node.value),
                 'type': node.children[0].type
             }
             
@@ -84,6 +125,10 @@ class Interpreter:
             original_value = self.resolve_var(node.children[1].value)
             target_type = node.children[2].type
             node.value = self.type_cast(original_value, target_type)
+            
+        elif node.type == 'SWITCH_CASE':
+            node.value = node.children[1].value
+       
             
         
     def evaluate_value(self, node, symbol_table):
