@@ -8,6 +8,7 @@ class Interpreter:
     def __init__(self, root, terminal):
         self.root = root
         self.symbol_table = {}
+        self.return_val = ''
         self.output = []
         
         self.terminal = terminal
@@ -20,9 +21,10 @@ class Interpreter:
         
     def interpret(self):
         self.interpret_node(self.root)
-        return self.output
+        return self.return_val
     
-    def interpret_node(self, node):  
+    def interpret_node(self, node): 
+        
         if node.type == 'IF_STATEMENT':
             if_value = self.symbol_table.get('IT', 'NOOB')['value']
             i = 1
@@ -82,7 +84,25 @@ class Interpreter:
                         'type': 'NUMBR'
                     }
                 self.interpret_node(node)
+            
+        elif node.type == "FUNC_DECL_STMT":
+            for i in range(0,2):
+                self.interpret_node(node.children[i])
+            func_name = node.children[1].value
+            parameters = []
+            for parameter in node.children[2].children:
+                if parameter.type == 'IDENTIFIER':
+                    parameters.append(parameter.value)
                     
+            self.symbol_table[func_name] = {
+                'value': func_name,
+                'type': 'FUNCTION',
+                'body': node.children[3],
+                'parameters': parameters
+            }
+            
+            print(str(self.symbol_table[func_name]))
+            
         else:
             for child in node.children:
                 self.interpret_node(child)
@@ -91,6 +111,7 @@ class Interpreter:
             self.declare_variable(node)
                 
         elif node.type == 'EXPRESSION':
+            
             node.value = node.children[0].value
             if node.children[0].value == 'NOT':
                 node.value = 'FAIL' if self.resolve_var(node.children[1].value) and  self.resolve_var(node.children[1].value) != 'FAIL'  else 'WIN'
@@ -100,7 +121,7 @@ class Interpreter:
             }
             
         elif node.type in l.DATA_TYPES:
-            node.value = self.evaluate_value(node, self.symbol_table)
+            node.value = self.evaluate_value(node)
             
         elif node.type == 'BIN_EXPR':
             operand1 = self.resolve_var(node.children[1].value)
@@ -124,7 +145,7 @@ class Interpreter:
         
         elif node.type == 'INPUT_STMT':
             var_name = node.children[1].value
-            self.gimmeh(var_name, self.symbol_table, '')
+            self.gimmeh(var_name, '')
             
         elif node.type == 'PRINT_STMT':
             expr_nodes = []
@@ -148,10 +169,38 @@ class Interpreter:
             
         elif node.type == 'SWITCH_CASE':
             node.value = node.children[1].value
-       
-            
         
-    def evaluate_value(self, node, symbol_table):
+        
+        elif node.type == "FUNC_CALL_STMT":
+            print('working')
+            func_name = node.children[1].value
+            in_parameters = []
+            i = 3
+            while i < len(node.children):
+                in_parameters.append(self.resolve_var(node.children[i].value))
+                i+=3
+                
+            func = self.symbol_table.get(func_name, 'NOOB')
+            func_body = func['body']
+            func_parameters = func['parameters']
+
+            func_interpreter = Interpreter(func_body, self.terminal)
+            i = 0
+            while i < len(func_parameters):
+                func_interpreter.symbol_table[func_parameters[i]] = {'value': in_parameters[i]}
+                i += 1
+            
+            print(func_interpreter.symbol_table)
+            node.value = func_interpreter.interpret()
+            del func_interpreter
+            self.input_ready = tk.StringVar()
+            self.terminal.bind('<Return>', self.on_enter)
+        
+        elif node.type == 'RETURN_STMT':
+            self.return_val = self.symbol_table.get('IT', 'NOOB')['value'] if len(node.children) > 1 else 'NOOB'
+       
+        
+    def evaluate_value(self, node):
         if node.type == 'NUMBR':
             return int(node.value)
         elif node.type == 'NUMBAR':
@@ -281,31 +330,31 @@ class Interpreter:
     #         terminal_output += f"Error: {variable_name} not found in symbol table.\n"
     #     return terminal_output  
     
-    def gimmeh(self, variable_name, symbol_table, terminal_output):
-        # Insert input prompt
-        self.terminal.insert(END, f'Enter value for {variable_name}: ')
+    def gimmeh(self, variable_name, terminal_output):
+        # # Insert input prompt
+        # self.terminal.insert(END, f'Enter value for {variable_name}: ')
         self.terminal.see(END)  # Scroll to the end
         self.terminal.focus()
         
         # Wait for input
         self.terminal.wait_variable(self.input_ready)
-        
         # Get the input, removing the prompt and stripping whitespace
         user_input = self.terminal.get(1.0, END).strip().split('\n')[-1]
         user_input = user_input.replace(f'Enter value for {variable_name}: ', '').strip()
 
-        if variable_name in symbol_table:
-            var_type = symbol_table[variable_name]['type']
+        if variable_name in self.symbol_table:
+            var_type = self.symbol_table[variable_name]['type']
             try:
-                symbol_table[variable_name] = {
-                    'value': int(user_input),
+                self.symbol_table[variable_name] = {
+                    'value': str(user_input),
                     'type': var_type
                 }
-                terminal_output += f"{variable_name} set to {symbol_table[variable_name]['value']}\n"
+                terminal_output += f"{variable_name} set to {self.symbol_table[variable_name]['value']}\n"
             except ValueError:
                 terminal_output += f"Error: Invalid value for {variable_name}.\n"
         else:
             terminal_output += f"Error: {variable_name} not found in symbol table.\n"
+        
         return terminal_output  
 
     def type_cast(self, original_value, target_type):

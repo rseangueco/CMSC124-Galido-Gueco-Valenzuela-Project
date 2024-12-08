@@ -40,7 +40,8 @@ EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF",
                     "BOTH OF", "EITHER OF", "WON OF",
                     "BOTH SAEM", "DIFFRINT",
                     "ALL OF", "ANY OF",
-                    "NOT"]
+                    "NOT",
+                    "I IZ"]
 
 BIN_EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", 
                     "MOD OF", "BIGGR OF", "SMALLR OF", 
@@ -50,4 +51,4 @@ BIN_EXPR_KEYWORDS = ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF",
 
 INF_EXPR_KEYWORDS = ["ALL OF", "ANY OF"]
 
-STMT_KEYWORDS = ["VISIBLE", "GIMMEH", "IM IN YR", "FOUND YR", "I IZ", "GTFO"]
+STMT_KEYWORDS = ["VISIBLE", "GIMMEH", "IM IN YR", "FOUND YR", "GTFO"]
