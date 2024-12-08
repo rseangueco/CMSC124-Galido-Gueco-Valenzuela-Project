@@ -124,6 +124,7 @@ class Interpreter:
     def interpret_if_block(self, node):
         if_value = self.symbol_table.get('IT', 'NOOB')['value']
         i = 1
+        #if_value = self.interpret_node(node.children[i-1])
         while i < len(node.children):
             if node.children[i].value == 'YA RLY':
                 if if_value == 'WIN':
@@ -314,7 +315,13 @@ class Interpreter:
                     return 'WIN' if (operand1 == operand2) else 'FAIL'
             
             elif operator == 'DIFFRINT':
-                return 'WIN' if (operand1 != operand2) else 'FAIL'
+               # return 'WIN' if (operand1 != operand2) else 'FAIL'
+                if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
+                    return 'WIN' if (self.type_cast(operand1, "NUMBR") != self.type_cast(operand2, "NUMBR")) else 'FAIL'
+                elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
+                    return 'WIN' if (self.type_cast(operand1, "NUMBAR") != self.type_cast(operand2, "NUMBAR")) else 'FAIL'
+                else: 
+                    return 'WIN' if (operand1 != operand2) else 'FAIL'
 
         except Exception as e:
             raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
