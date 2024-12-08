@@ -4,7 +4,6 @@ from tkinter import simpledialog
 from tkinter import scrolledtext
 from tkinter import ttk
 import lexer
-# import syntax_analyzer_with_semnatics as parser
 import syntax_analyzer as parser
 import interpreter
 

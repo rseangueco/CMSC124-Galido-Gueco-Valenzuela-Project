@@ -10,7 +10,7 @@ class Interpreter:
     
     def __init__(self, root, terminal):
         self.root = root
-        self.symbol_table = {}
+        self.symbol_table = {'IT': {'value': 'NOOB'}}
         self.return_val = ''
         self.output = []
         
@@ -40,23 +40,26 @@ class Interpreter:
             for child in node.children:
                 self.interpret_node(child)
         
-        if node.type in l.DATA_TYPES:
-            node.value = self.evaluate_value(node)
-            
-        elif node.type == 'EXPRESSION':
-            node.value = node.children[0].value
+        if node.type == 'EXPRESSION':
+            if node.children[0].type == 'IDENTIFIER':
+                if node.children[0].value not in self.symbol_table:
+                    raise RuntimeError(str(node.children[0].location) + " Uninitialized variable: " + str(node.children[0].value))
+                
+            node.value = self.resolve_var(node.children[0].value)
             if node.children[0].value == 'NOT':
                 node.value = 'FAIL' if self.resolve_var(node.children[1].value) and  self.resolve_var(node.children[1].value) != 'FAIL'  else 'WIN'
             self.symbol_table['IT'] = {
                 'value': self.resolve_var(node.value),
                 'type': node.children[0].type
-            }            
+            }
         
         elif node.type == 'BIN_EXPR':
             operand1 = self.resolve_var(node.children[1].value)
             operand2 = self.resolve_var(node.children[3].value)
             node.value = self.perform_bin_op(node.children[0].value, operand1, operand2)
-        
+            if node.value == None:
+                raise RuntimeError(str(node.children[0].location) + " Unable to perform " + node.children[0].value + " on " + operand1 + " and " + operand2)
+            
         elif node.type == 'INF_EXPR':
             operands = []
             i = 1
@@ -97,11 +100,11 @@ class Interpreter:
             while i < len(node.children):
                 expr_nodes.append(node.children[i])
                 i += 2
-            self.output.append(self.print_visible(expr_nodes)) 
+            self.print_visible(expr_nodes)
             
         elif node.type == 'TYPE_STMT':
             var_name = node.children[0].value
-            target_type = node.children[2].type
+            target_type = node.children[2].value
             original_value = self.symbol_table.get(var_name, 'NOOB')['value']
             self.symbol_table[var_name] = {
                 'value': self.type_cast(original_value, target_type),
@@ -219,19 +222,6 @@ class Interpreter:
         del func_interpreter
         self.terminal.bind('<Return>', self.on_enter)
     
-    # evaluates a node's value based on its type, converting literals to their Python equivalents
-    def evaluate_value(self, node):
-        if node.type == 'NUMBR':
-            return int(node.value)
-        elif node.type == 'NUMBAR':
-            return float(node.value)
-        elif node.type == 'YARN':
-            # remove quotes from string
-            return node.value[1:-1]
-        elif node.type == 'TROOF':
-            return 'WIN' if node.value == 'WIN' else 'FAIL'
-        return node.value
-    
     # takes a value and resolves it if it is a variable, otherwise returns the value
     # used when an operand may accept the value stored in a variable
     def resolve_var(self, var_name):
@@ -270,7 +260,6 @@ class Interpreter:
                     return self.type_cast(operand1, "NUMBR") + self.type_cast(operand2, "NUMBR")
                 elif (bool(re.match(l.NUMBAR, str(operand1))) or bool(re.match(l.NUMBAR, str(operand2)))):
                     return self.type_cast(operand1, "NUMBAR") + self.type_cast(operand2, "NUMBAR")
-            
             elif operator == 'DIFF OF':
                 if (bool(re.match(l.NUMBR, str(operand1))) and bool(re.match(l.NUMBR, str(operand2)))):
                     return self.type_cast(operand1, "NUMBR") - self.type_cast(operand2, "NUMBR")
@@ -328,7 +317,6 @@ class Interpreter:
                 return 'WIN' if (operand1 != operand2) else 'FAIL'
 
         except Exception as e:
-            print(str(e))
             raise TypeError("Invalid type: Cannot perform " + str(operator) + " on " + str(operand1) + " and " + str(operand2))
         
         return None 
@@ -353,9 +341,8 @@ class Interpreter:
     def print_visible(self, expr_nodes):
         output = ''
         for node in expr_nodes:
-            value = node.value  
-            output += str(self.resolve_var(value))
-        self.terminal.insert(END, str(output) + '\n')
+            output += str(node.value)
+        self.terminal.insert(END, output + '\n')
         print(output)
         # return output
     
@@ -411,12 +398,10 @@ class Interpreter:
                 elif isinstance(original_value, float):
                     return int(original_value)
                 elif isinstance(original_value, str):
-                    # if bool(re.match(l.NUMBR, original_value)):
-                        return int(original_value)
+                    return int(original_value)
                 elif isinstance(original_value, int):
                     return original_value
                 else:
-                    print('test')
                     raise TypeError("Invalid type: Cannot perform type casting to NUMBR on" + str(original_value))
             elif target_type == "NUMBAR":
                 if original_value == "WIN":
@@ -426,8 +411,7 @@ class Interpreter:
                 elif isinstance(original_value, int):
                     return float(original_value)
                 elif isinstance(original_value, str):
-                    # if bool(re.match(l.NUMBAR, original_value)):
-                        return float(original_value)
+                    return float(original_value)
                 elif isinstance(original_value, float):
                     return original_value
                 else:
