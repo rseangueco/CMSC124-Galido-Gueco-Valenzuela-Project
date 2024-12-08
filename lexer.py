@@ -83,7 +83,7 @@ def tokenize(text):
             #TYPE literal
             elif bool(re.search(l.TYPE, token)):
                 if i == len(line)-1 or line[i+1] == " " or line[i+1] == "\n":
-                    tokens.append((token, "TROOF"))
+                    tokens.append((token, "TYPE"))
                     token = ""
             #identifiers
             elif bool(re.search(l.IDENTIFIER, token)) or token == 'IT':

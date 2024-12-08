@@ -1,9 +1,10 @@
 import lexemes as l
 
 class ParseTreeNode:
-    def __init__(self, type, value):
+    def __init__(self, type, value, location):
         self.type = type
         self.value = value
+        self.location = location
         self.children = []
         
     def add_child(self, child):
@@ -23,7 +24,9 @@ class Parser:
         self.current = None
         self.index = -1
         self.symbol_table = {}  # dictionary to store variables and their values
-
+        self.line = 1
+        self.token_in_line = 1
+        
         self.advance()
         
         
@@ -35,23 +38,26 @@ class Parser:
     def add_current(self, node):
         type = self.current[1]
         value = self.current[0]
-        node.add_child(ParseTreeNode(type, value))
+        node.add_child(ParseTreeNode(type, value, (str(self.line)+":"+str(self.token_in_line))))
         self.advance()
     
     def store_current(self):
         type = self.current[1]
         value = self.current[0]
         self.advance()
-        return ParseTreeNode(type, value)
+        return ParseTreeNode(type, value, (str(self.line)+":"+str(self.token_in_line)))
     
     def next_token(self, node):
         while self.current and self.current[0] in ['BTW', 'OBTW', 'linebreak']:
+            self.line += 1
+            self.token_in_line = 1
             if self.current and self.current[0] in ['BTW', 'OBTW']:
                 node.add_child(self.comment())
             elif self.current and self.current[0] == 'linebreak':
                 self.advance()
                 # uncomment to show linebreaks in parse tree
                 # self.add_current(node)
+        self.token_in_line += 1
         
     # Parses to the next token that is not a comment or line break
     def find_by_name(self, node, name, required):
@@ -62,7 +68,7 @@ class Parser:
             if required:
                 #print("Unexpected token: " + self.current[0] + "'." + 
                 #      (" Expected '" + str(name) + "' " + str(self.index)))
-                raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
+                raise SyntaxError(str(self.line) + ":" + str(self.token_in_line) + " Unexpected token: '" + self.current[0] + "'." + 
                     (" Expected '" + str(name) + "'" if str(name) != None else None) )
             return False
         
@@ -75,13 +81,13 @@ class Parser:
             if required:
                 #print("Unexpected token: " + self.current[0] + "'." + 
                 #      (" Expected '" + str(type) + "' " + str(self.index)))
-                raise SyntaxError("Unexpected token: '" + self.current[0] + "'." + 
+                raise SyntaxError(str(self.line) + ":" + str(self.token_in_line) + " Unexpected token: '" + self.current[0] + "'." + 
                     (" Expected '" + str(type) + "'" if str(type) != None else None) )
             return False
            
            
     def comment(self):
-        node = ParseTreeNode('COMMENT', None)
+        node = ParseTreeNode('COMMENT', None, None)
         self.add_current(node)
         while self.current and self.current[1] == 'COMMENT': self.add_current(node)
         while self.current and self.current[0] == 'TLDR': self.add_current(node)
@@ -94,7 +100,7 @@ class Parser:
 
 
     def program(self):
-        node = ParseTreeNode('PROGRAM', None)
+        node = ParseTreeNode('PROGRAM', None, None)
         if self.find_by_name(node, 'HAI', True): self.add_current(node)
         if self.find_by_name(node, 'WAZZUP', False):
             node.add_child(self.var_section())
@@ -106,7 +112,7 @@ class Parser:
     
     
     def var_section(self):
-        node = ParseTreeNode('VAR_SECTION', None)
+        node = ParseTreeNode('VAR_SECTION', None, None)
         self.add_current(node)
         while self.find_by_name(node, 'I HAS A', False):
             node.add_child(self.var_decl())
@@ -116,7 +122,7 @@ class Parser:
     
     
     def var_decl(self):
-        node = ParseTreeNode('VAR_DECL', None)
+        node = ParseTreeNode('VAR_DECL', None, None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, 'ITZ', False): 
@@ -127,7 +133,7 @@ class Parser:
     
     
     def code_section(self):
-        node = ParseTreeNode('CODE_SECTION', None)
+        node = ParseTreeNode('CODE_SECTION', None, None)
         while (self.find_by_name(node, l.STMT_KEYWORDS, False) or 
                self.find_by_type(node, 'IDENTIFIER', False) or
                self.find_by_name(node, l.EXPR_KEYWORDS, False)): 
@@ -137,7 +143,7 @@ class Parser:
 
 
     def expr(self):
-        node = ParseTreeNode('EXPRESSION', None)
+        node = ParseTreeNode('EXPRESSION', None, None)
         if self.find_by_type(node, 'IDENTIFIER', False): self.add_current(node)
         elif self.find_by_type(node, l.DATA_TYPES, False): self.add_current(node)
         elif self.find_by_name(node, l.BIN_EXPR_KEYWORDS, False): node.add_child(self.bin_expr())
@@ -150,14 +156,13 @@ class Parser:
         elif self.find_by_name(node, "I IZ", False):
             node.add_child(self.func_call_expr())
         else:
-            print("Invalid Expression: " + self.current[0])
-            return
+            raise SyntaxError(str(self.line) + ":" + str(self.token_in_line) + " Invalid Expression: " + self.current[0])
         
         return node
     
     
     def bin_expr(self):
-        node = ParseTreeNode('BIN_EXPR', None)
+        node = ParseTreeNode('BIN_EXPR', None, None)
         self.add_current(node)
         node.add_child(self.expr())
         if self.find_by_name(node, 'AN', True):
@@ -168,7 +173,7 @@ class Parser:
     
     
     def inf_expr(self):
-        node = ParseTreeNode('INF_EXPR', None)
+        node = ParseTreeNode('INF_EXPR', None, None)
         self.add_current(node)
         node.add_child(self.expr())
         while self.find_by_name(node, 'AN', False):
@@ -180,7 +185,7 @@ class Parser:
     
     
     def concat_expr(self):
-        node = ParseTreeNode('CONCAT_EXPR', None)
+        node = ParseTreeNode('CONCAT_EXPR', None, None)
         self.add_current(node)
         node.add_child(self.expr())
         while self.find_by_name(node, 'AN', False):
@@ -191,7 +196,7 @@ class Parser:
     
     
     def type_expr(self):
-        node = ParseTreeNode('TYPE_EXPR', None)
+        node = ParseTreeNode('TYPE_EXPR', None, None)
         self.add_current(node)
         node.add_child(self.expr())
         if self.find_by_type(node, l.DATA_TYPES, True): self.add_current(node)
@@ -200,7 +205,7 @@ class Parser:
     
     
     def stmt(self):
-        node = ParseTreeNode('STATEMENT', None)
+        node = ParseTreeNode('STATEMENT', None, None)
         if self.find_by_name(node, 'VISIBLE', False): node.add_child(self.print_stmt())
         elif self.find_by_name(node, 'GIMMEH', False): node.add_child(self.input_stmt())
         elif self.find_by_type(node, 'IDENTIFIER', False): 
@@ -218,12 +223,14 @@ class Parser:
             node.add_child(self.return_stmt())
         elif self.find_by_name(node, 'GTFO', False):
             node.add_child(self.return_stmt())
+        else:
+            raise SyntaxError(str(self.line) + ":" + str(self.token_in_line) + " Invalid Statement: " + self.current[0])
         
         return node
     
     
     def print_stmt(self):
-        node = ParseTreeNode('PRINT_STMT', None)
+        node = ParseTreeNode('PRINT_STMT', None, None)
 
         self.add_current(node)
         node.add_child(self.expr())
@@ -235,17 +242,15 @@ class Parser:
     
     
     def input_stmt(self):
-        node = ParseTreeNode('INPUT_STMT', None)
+        node = ParseTreeNode('INPUT_STMT', None, None)
         self.add_current(node)
-        expr_node = self.expr()
-        node.add_child(expr_node)
-        node.value = expr_node.value
+        if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         
         return node
     
     
     def assign_stmt(self, identifier):
-        node = ParseTreeNode('ASSIGN_STMT', None)
+        node = ParseTreeNode('ASSIGN_STMT', None, None)
         node.add_child(identifier)
         self.add_current(node)
         node.add_child(self.expr())
@@ -254,7 +259,7 @@ class Parser:
     
     
     def type_stmt(self, identifier):
-        node = ParseTreeNode('TYPE_STMT', None)
+        node = ParseTreeNode('TYPE_STMT', None, None)
         node.add_child(identifier)
         self.add_current(node)
         if self.find_by_type(node, l.DATA_TYPES, True): self.add_current(node)
@@ -263,7 +268,7 @@ class Parser:
     
 
     def if_stmt(self):
-        node = ParseTreeNode('IF_STATEMENT', None)
+        node = ParseTreeNode('IF_STATEMENT', None, None)
 
         self.add_current(node)
         if self.find_by_name(node, 'YA RLY', True): 
@@ -281,7 +286,7 @@ class Parser:
         return node
         
     def elif_stmt(self):
-        node = ParseTreeNode('ELIF_STATEMENT', None)
+        node = ParseTreeNode('ELIF_STATEMENT', None, None)
         self.add_current(node)
         node.add_child(self.expr())
 
@@ -289,8 +294,8 @@ class Parser:
     
     
     def switch_stmt(self, identifier):
-        node = ParseTreeNode('SWITCH_STATEMENT', None)
-        node.add_child(ParseTreeNode('EXPRESSION', None))
+        node = ParseTreeNode('SWITCH_STATEMENT', None, None)
+        node.add_child(ParseTreeNode('EXPRESSION', None, None))
         node.children[0].add_child(identifier)
         self.add_current(node)
         while self.find_by_name(node, 'OMG', False):
@@ -305,14 +310,14 @@ class Parser:
         return node
     
     def switch_case(self):
-        node = ParseTreeNode('SWITCH_CASE', None)
+        node = ParseTreeNode('SWITCH_CASE', None, None)
         self.add_current(node)
         node.add_child(self.expr())
         return node
     
     
     def loop_stmt(self):
-        node = ParseTreeNode('LOOP_STMT', None)
+        node = ParseTreeNode('LOOP_STMT', None, None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, ['UPPIN','NERFIN'], True): self.add_current(node)
@@ -327,7 +332,7 @@ class Parser:
     
     
     def func_decl_stmt(self):
-        node = ParseTreeNode('FUNC_DECL_STMT', None)
+        node = ParseTreeNode('FUNC_DECL_STMT', None, None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, 'YR', False): node.add_child(self.parameter())
@@ -338,7 +343,7 @@ class Parser:
     
     
     def func_call_expr(self):
-        node = ParseTreeNode('FUNC_CALL_STMT', None)
+        node = ParseTreeNode('FUNC_CALL_STMT', None, None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, 'YR', False): 
@@ -353,7 +358,7 @@ class Parser:
         
         
     def return_stmt(self):
-        node = ParseTreeNode('RETURN_STMT', None)
+        node = ParseTreeNode('RETURN_STMT', None, None)
         if self.find_by_name(node, 'GTFO', False): self.add_current(node)
         else:
             self.add_current(node)
@@ -363,7 +368,7 @@ class Parser:
     
     
     def parameter(self):
-        node = ParseTreeNode('PARAMETER', None)
+        node = ParseTreeNode('PARAMETER', None, None)
         self.add_current(node)
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         while self.find_by_name(node, 'AN', False): 
