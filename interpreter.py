@@ -1,13 +1,23 @@
 import syntax_analyzer
+import tkinter as tk
+from tkinter import *
 import lexemes as l
 
 class Interpreter:  
     
-    def __init__(self, root):
+    def __init__(self, root, terminal):
         self.root = root
         self.symbol_table = {}
         self.output = []
+        
+        self.terminal = terminal
+        self.input_ready = tk.StringVar()
+        self.terminal.bind('<Return>', self.on_enter)
     
+    def on_enter(self, event):
+        # Signal that input is ready
+        self.input_ready.set("input received")
+        
     def interpret(self):
         self.interpret_node(self.root)
         return self.output
@@ -180,12 +190,44 @@ class Interpreter:
         for node in expr_nodes:
             value = node.value  
             output += str(self.resolve_var(value))
-        return output
+        self.terminal.insert(END, str(output) + '\n')
+        print(output)
+        # return output
+    
+    # def gimmeh(self, variable_name, symbol_table, terminal_output):
+    #     # terminal_output += f"Enter value for {variable_name}:\n"
+    #     # user_input = input(f"Enter value for {variable_name}: ").strip()
+        
+    #     self.terminal.insert(END, f'Enter value for {variable_name}:')
+    #     self.terminal.focus()
+    #     user_input = self.terminal.get(1.0, END)
+
+    #     if variable_name in symbol_table:
+    #         var_type = symbol_table[variable_name]['type']
+    #         try:
+    #             symbol_table[variable_name] = {
+    #                 'value': int(user_input),
+    #                 'type': var_type
+    #             }
+    #             terminal_output += f"{variable_name} set to {symbol_table[variable_name]['value']}\n"
+    #         except ValueError:
+    #             terminal_output += f"Error: Invalid value for {variable_name}.\n"
+    #     else:
+    #         terminal_output += f"Error: {variable_name} not found in symbol table.\n"
+    #     return terminal_output  
     
     def gimmeh(self, variable_name, symbol_table, terminal_output):
-        terminal_output += f"Enter value for {variable_name}:\n"
-
-        user_input = input(f"Enter value for {variable_name}: ").strip()
+        # Insert input prompt
+        self.terminal.insert(END, f'Enter value for {variable_name}: ')
+        self.terminal.see(END)  # Scroll to the end
+        self.terminal.focus()
+        
+        # Wait for input
+        self.terminal.wait_variable(self.input_ready)
+        
+        # Get the input, removing the prompt and stripping whitespace
+        user_input = self.terminal.get(1.0, END).strip().split('\n')[-1]
+        user_input = user_input.replace(f'Enter value for {variable_name}: ', '').strip()
 
         if variable_name in symbol_table:
             var_type = symbol_table[variable_name]['type']

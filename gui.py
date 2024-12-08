@@ -71,7 +71,7 @@ symbol_label = Label(root, text="Symbol Table", font=('Arial', 15), borderwidth=
 symbol_label.place(x=1055, y=40, height=40, width=335)
 
 terminal = scrolledtext.ScrolledText(root, font=('Consolas', 10), bg="#E5E4E2", fg="#36454F", insertbackground="#00A7B5")
-terminal.place(x=10, y=440, height=450, width=1380)
+terminal.place(x=10, y=440, height=350, width=1380)
 
 #button actions
 file_path = ''
@@ -183,15 +183,15 @@ def execFile():
         parser_instance = parser.Parser(tokens)
         parse_tree = parser_instance.parse()
         
-        interpreter_instance = interpreter.Interpreter(parse_tree)
+        interpreter_instance = interpreter.Interpreter(parse_tree, terminal)
         output = interpreter_instance.interpret()
         
         for var_name, var_value in interpreter_instance.symbol_table.items():
             symbol_table.insert('', END, values=(var_name, var_value['value']))
 
-        for line in output:
-            terminal.insert(END, str(line) + '\n')
-            print(line)
+        # for line in output:
+        #     terminal.insert(END, str(line) + '\n')
+        #     print(line)
         
         # for child in parse_tree.children:
         #     if child.type == 'CODE_SECTION':
