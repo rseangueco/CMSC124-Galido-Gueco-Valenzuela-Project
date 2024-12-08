@@ -1,4 +1,4 @@
-# CMSC124-Galido-Gueco-Valenzuela-Project: LOLCODE Interpreter  
+# CMSC 124 Project: LOLCODE Interpreter  
 
 ## Program Description  
 A lightweight LOLCODE interpreter built in Python, capable of lexically, syntactically, and semantically analyzing LOLCODE files. The interpreter comes with an intuitive GUI that integrates essential tools such as a text editor, symbol table, lexemes table, and a makeshift console for easy testing and debugging.  
@@ -60,7 +60,8 @@ A lightweight LOLCODE interpreter built in Python, capable of lexically, syntact
 3. Execute the GUI file:
    ```bash
    python gui.py
-   
-   # or
-   
+   ```
+   or
+   ```bash
    python3 gui.py  
+   ```
