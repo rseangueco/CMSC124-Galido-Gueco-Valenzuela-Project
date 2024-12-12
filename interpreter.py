@@ -81,7 +81,7 @@ class Interpreter:
         
         elif node.type == 'TYPE_EXPR':
             original_value = self.resolve_var(node.children[1].value)
-            target_type = node.children[2].type
+            target_type = node.children[2].value
             node.value = self.type_cast(original_value, target_type)
             
         elif node.type == 'VAR_DECL':

@@ -329,7 +329,7 @@ class Parser:
         if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, ['UPPIN','NERFIN'], True): self.add_current(node) #operation
         if self.find_by_name(node, 'YR', True): self.add_current(node)
-        node.add_child(self.expr())
+        if self.find_by_type(node, 'IDENTIFIER', True): self.add_current(node)
         if self.find_by_name(node, ['TIL','WILE'], True): self.add_current(node) #condition
         node.add_child(self.expr())
         node.add_child(self.code_section()) #body
